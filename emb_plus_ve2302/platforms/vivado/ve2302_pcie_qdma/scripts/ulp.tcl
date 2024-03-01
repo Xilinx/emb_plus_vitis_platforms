@@ -624,7 +624,7 @@ proc create_root_design { parentCell } {
   set_property CONFIG.CONST_VAL {0} $const_1
 
   # Create instance: axi_noc_h2c, and set properties
-  set axi_noc_h2c [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_noc:1.0 axi_noc_h2c ]
+  set axi_noc_h2c [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_noc axi_noc_h2c ]
   set_property -dict [list \
     CONFIG.NUM_NSI {1} \
     CONFIG.NUM_SI {0} \

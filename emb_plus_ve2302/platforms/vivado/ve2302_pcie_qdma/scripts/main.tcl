@@ -5,7 +5,7 @@
 enable_beta_device xcve2302-*
 set_param bitstream.enablePR 8519
 set_param bd.bdc.use_training_module 1
-set_param bd.test "no_noc_ini_stub"
+set_param bd.noc.use_stub_nmu 0
 
 # Set project variables
 set proj_dir ./project

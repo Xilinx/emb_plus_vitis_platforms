@@ -2623,6 +2623,7 @@ proc create_root_design { parentCell} {
 
   validate_bd_design
   save_bd_design
+
 }
 # End of create_root_design()
 
@@ -2632,3 +2633,10 @@ proc create_root_design { parentCell} {
 ##################################################################
 
 create_root_design ""
+
+set curdesign [current_bd_design]
+create_bd_design -boundary_from_container [get_bd_cells /ulp] training
+current_bd_design $curdesign
+set_property -dict [list CONFIG.LIST_SYNTH_BD {ulp.bd:training.bd} CONFIG.LIST_SIM_BD {ulp.bd:training.bd} CONFIG.TRAINING_MODULE {training.bd}] [get_bd_cells /ulp]
+validate_bd_design
+save_bd_design

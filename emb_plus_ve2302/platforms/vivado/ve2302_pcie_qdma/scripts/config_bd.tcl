@@ -2510,8 +2510,14 @@ proc create_root_design { parentCell} {
   assign_bd_address -offset 0x020202010000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/gcq_u2a_0/S00_AXI/S00_AXI_Reg] -force
   assign_bd_address -offset 0x020102001000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/hw_discovery/s_axi_ctrl_pf0/reg0] -force
   assign_bd_address -offset 0x020202001000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/hw_discovery/s_axi_ctrl_pf1/reg0] -force
-  assign_bd_address -offset 0x020102000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S0_AXI/Reg] -force
-  assign_bd_address -offset 0x020202000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S1_AXI/Reg] -force
+  
+  
+  
+  
+  
+  
+  
+  
   assign_bd_address -offset 0x020107000000 -range 0x00004000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/qdma_0/S_AXI_LITE_CSR/CTL0] -force
   assign_bd_address -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/uuid_rom/S_AXI/reg0] -force
 

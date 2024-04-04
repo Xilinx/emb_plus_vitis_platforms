@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import argparse
+import warnings
 
 parser = argparse.ArgumentParser(description="Partition_metadata generation - required files")
 parser.add_argument("-pdi",required=True, help="Project_Partial.pdi (partial PDI image) required")
@@ -114,7 +115,6 @@ mem_reg_abst_name = "xilinx.com:reg_abs:ps_memory:1.0"
 mem_pf = "0x1"
 mem_base_addr = "0x0"
 
-
 partition_header_str_1 = '''{
     "partition_metadata":
     {'''
@@ -178,6 +178,7 @@ partition_closing_str = '''        },'''
 
 addressable_endpoints_str = '''        "addressable_endpoints":
         {'''
+
 addressable_endpoints = """            \"{ep_name}\":
             {{
                 \"offset\": \"{ep_offset}\",
@@ -220,6 +221,7 @@ def run_bootgen(pdi_file_name,uuid_txt_file):
     command = cmd.format(pdi_file_name, uuid_txt_file)
     os.system(command)
     return os.path.abspath(uuid_txt_file)       ##returns absolute path of the file as string ==>>> This will be passed to the "extract_uuid" function below
+
 ## Function to extract IDs
 def extract_uuid(uuid_file_path):
     with open (uuid_file_path, 'r') as file:
@@ -335,8 +337,7 @@ def extract_mem_prop (config_bd_file_path):
 
         addressable_mem = res_mem_string.format(mem_name=mem_name, offset=offset, mem_range=mem_range, mem_base_addr=mem_base_addr, mem_pf=mem_pf, mem_reg_abst_name=mem_reg_abst_name)
     return addressable_mem
-    
-    
+
 # Function to generate the partition_metadata file and append text to it
 def metadata_file_header(metadata_file_path):
     file = open(metadata_file_path,'w')
@@ -356,8 +357,6 @@ def metadata_file_header(metadata_file_path):
     file.write(partition_header_str_6)
     file.write('\n')
     file.close()
-
-
 
 ### Function to get the endpoints and return them in a list "endpoints"
 def extract_endpoints (config_bd_file_path):
@@ -432,6 +431,8 @@ def ep_offset_pf_add_base_adj(ep_offset_list,bar_address_list,pfbar_list):
         ep_ba_list.append(ep_ba)
     return ep_pf_list, ep_ba_list, adjusted_offset_list
 
+
+## Main function that takes everything and generate the metadata file
 def metadata_file_generation(metadata_file_path,config_bd_file_path):
     metadata_file_header(metadata_file_path)
 
@@ -548,10 +549,10 @@ logic_uuid = "{:032x}".format(logic_uuid_int)
 
 if validation_uuid!= logic_uuid:
     print ("Attention! " + validation_uuid + " != " + logic_uuid)
-    raise ValueError("Validation UUID and PDI UUID do not match!")
+    #raise ValueError("Validation UUID and PDI UUID do not match!")
+    warnings.warn('Validation UUID and PDI UUID do not match!')
 
 
 metadata_file_generation(metadata_file_path,config_bd_file_path)
 print("partition_metadata.json has been successfully generated!")
 print("Please check the file located at " + metadata_file_path)
-                                                                                

@@ -149,13 +149,13 @@ xilinx.com:ip:gt_quad_base:*\
       set ip_obj [get_ipdefs -all $ip_vlnv]
       if { $ip_obj eq "" } {
          lappend list_ips_missing $ip_vlnv
- }
- }
+      }
+   }
 
    if { $list_ips_missing ne "" } {
       catch {common::send_gid_msg -ssname BD::TCL -id 2012 -severity "ERROR" "The following IPs are not found in the IP Catalog:\n  $list_ips_missing\n\nResolution: Please add the repository containing the IP(s) to the project." }
       set bCheckIPsPassed 0
- }
+   }
 
 }
 
@@ -163,15 +163,18 @@ xilinx.com:ip:gt_quad_base:*\
 # CHECK Block Design Container Sources
 ##################################################################
 set bCheckSources 1
-set list_bdc_active "ulp"
+set list_bdc_active "ulp_training"
+set list_bdc_dfx "ulp"
 
 array set map_bdc_missing {}
 set map_bdc_missing(ACTIVE) ""
+set map_bdc_missing(DFX) ""
 set map_bdc_missing(BDC) ""
 
 if { $bCheckSources == 1 } {
    set list_check_srcs "\
 ulp \
+ulp_training \
 "
 
    common::send_gid_msg -ssname BD::TCL -id 2056 -severity "INFO" "Checking if the following sources for block design container exist in the project: $list_check_srcs .\n\n"
@@ -180,21 +183,28 @@ ulp \
       if { [can_resolve_reference $src] == 0 } {
          if { [lsearch $list_bdc_active $src] != -1 } {
             set map_bdc_missing(ACTIVE) "$map_bdc_missing(ACTIVE) $src"
- } else {
+         } elseif { [lsearch $list_bdc_dfx $src] != -1 } {
+            set map_bdc_missing(DFX) "$map_bdc_missing(DFX) $src"
+         } else {
             set map_bdc_missing(BDC) "$map_bdc_missing(BDC) $src"
- }
- }
- }
+         }
+      }
+   }
 
    if { [llength $map_bdc_missing(ACTIVE)] > 0 } {
       catch {common::send_gid_msg -ssname BD::TCL -id 2057 -severity "ERROR" "The following source(s) of Active variants are not found in the project: $map_bdc_missing(ACTIVE)" }
       common::send_gid_msg -ssname BD::TCL -id 2060 -severity "INFO" "Please add source files for the missing source(s) above."
       set bCheckIPsPassed 0
- }
+   }
+   if { [llength $map_bdc_missing(DFX)] > 0 } {
+      catch {common::send_gid_msg -ssname BD::TCL -id 2058 -severity "ERROR" "The following source(s) of DFX variants are not found in the project: $map_bdc_missing(DFX)" }
+      common::send_gid_msg -ssname BD::TCL -id 2060 -severity "INFO" "Please add source files for the missing source(s) above."
+      set bCheckIPsPassed 0
+   }
    if { [llength $map_bdc_missing(BDC)] > 0 } {
       catch {common::send_gid_msg -ssname BD::TCL -id 2059 -severity "WARNING" "The following source(s) of variants are not found in the project: $map_bdc_missing(BDC)" }
       common::send_gid_msg -ssname BD::TCL -id 2060 -severity "INFO" "Please add source files for the missing source(s) above."
- }
+   }
 }
 
 if { $bCheckIPsPassed != 1 } {
@@ -1732,7 +1742,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
       PS_USE_NOC_LPD_AXI0 {1} \
       PS_USE_PMCPL_CLK0 {1} \
       PS_USE_PMCPL_CLK1 {1} \
-      PS_USE_PMCPL_CLK2 {1} \
+      PS_USE_PMCPL_CLK2 {0} \
       SMON_ALARMS {Set_Alarms_On} \
       SMON_ENABLE_TEMP_AVERAGING {0} \
       SMON_INTERFACE_TO_USE {I2C} \
@@ -1788,7 +1798,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {256} \
    CONFIG.CONNECTIONS {M03_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M06_INI {read_bw {500} write_bw {500}} M00_INI {read_bw {800} write_bw {800}}} \
-   CONFIG.DEST_IDS {M03_AXI:0x80} \
+   CONFIG.DEST_IDS {M03_AXI:0x40} \
    CONFIG.REMAPS {} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {pl} \
@@ -1797,7 +1807,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {128} \
    CONFIG.CONNECTIONS {M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M04_INI {read_bw {500} write_bw {500}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M00_INI {read_bw {800} write_bw {800}}} \
-   CONFIG.DEST_IDS {M01_AXI:0x100:M02_AXI:0x140} \
+   CONFIG.DEST_IDS {M01_AXI:0x1c0:M02_AXI:0x240} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {ps_cci} \
  ] [get_bd_intf_pins /blp/axi_noc_ic/S01_AXI]
@@ -1805,7 +1815,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {128} \
    CONFIG.CONNECTIONS {M01_INI {read_bw {800} write_bw {800}} M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M04_INI {read_bw {500} write_bw {500}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}} \
-   CONFIG.DEST_IDS {M01_AXI:0x100:M02_AXI:0x140} \
+   CONFIG.DEST_IDS {M01_AXI:0x1c0:M02_AXI:0x240} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {ps_cci} \
  ] [get_bd_intf_pins /blp/axi_noc_ic/S02_AXI]
@@ -1813,7 +1823,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {128} \
    CONFIG.CONNECTIONS {M02_INI {read_bw {800} write_bw {800}} M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M04_INI {read_bw {500} write_bw {500}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}} \
-   CONFIG.DEST_IDS {M01_AXI:0x100:M02_AXI:0x140} \
+   CONFIG.DEST_IDS {M01_AXI:0x1c0:M02_AXI:0x240} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {ps_cci} \
  ] [get_bd_intf_pins /blp/axi_noc_ic/S03_AXI]
@@ -1821,7 +1831,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {128} \
    CONFIG.CONNECTIONS {M03_INI {read_bw {800} write_bw {800}} M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M04_INI {read_bw {500} write_bw {500}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}} \
-   CONFIG.DEST_IDS {M01_AXI:0x100:M02_AXI:0x140} \
+   CONFIG.DEST_IDS {M01_AXI:0x1c0:M02_AXI:0x240} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {ps_cci} \
  ] [get_bd_intf_pins /blp/axi_noc_ic/S04_AXI]
@@ -1829,7 +1839,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {128} \
    CONFIG.CONNECTIONS {M03_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M06_INI {read_bw {500} write_bw {500}} M04_INI {read_bw {500} write_bw {500}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M00_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M00_INI {read_bw {800} write_bw {800}}} \
-   CONFIG.DEST_IDS {M03_AXI:0x80:M02_AXI:0x140:M00_AXI:0x0} \
+   CONFIG.DEST_IDS {M03_AXI:0x40:M02_AXI:0x240:M00_AXI:0x140} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {ps_pmc} \
  ] [get_bd_intf_pins /blp/axi_noc_ic/S05_AXI]
@@ -1844,7 +1854,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
 
   set_property -dict [ list \
    CONFIG.CONNECTIONS {M03_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M06_INI {read_bw {500} write_bw {500}} M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M05_INI {read_bw {500} write_bw {500}} M00_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}} \
-   CONFIG.DEST_IDS {M03_AXI:0x80:M01_AXI:0x100:M02_AXI:0x140:M00_AXI:0x0} \
+   CONFIG.DEST_IDS {M03_AXI:0x40:M01_AXI:0x1c0:M02_AXI:0x240:M00_AXI:0x140} \
    CONFIG.REMAPS {M05_INI {{0x201_0800_0000 0x000_3800_0000 128M}} M05_INI {{0x202_0600_0000 0x000_3600_0000 16M}}} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {pl} \
@@ -2371,6 +2381,11 @@ proc create_root_design { parentCell} {
   # Set parent object as current
   current_bd_instance $parentObj
 
+  set_property -dict [list \
+  SRC_RM_MAP./ulp.ulp {ulp_inst_0} \
+  SRC_RM_MAP./ulp.ulp_training {ulp_training_inst_0} \
+] [get_bd_designs $design_name]
+
 
   # Create interface ports
   set CH0_LPDDR4_0_0 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:lpddr4_rtl:1.0 CH0_LPDDR4_0_0 ]
@@ -2408,16 +2423,24 @@ proc create_root_design { parentCell} {
   create_hier_cell_blp [current_bd_instance .] blp
 
   # Create instance: ulp, and set properties
-  set ulp [ create_bd_cell -type container -reference ulp ulp ]
-  set_property -dict [ list \
-   CONFIG.ACTIVE_SIM_BD {ulp.bd} \
-   CONFIG.ACTIVE_SYNTH_BD {ulp.bd} \
-   CONFIG.ENABLE_DFX {true} \
-   CONFIG.LIST_SIM_BD {ulp.bd} \
-   CONFIG.LIST_SYNTH_BD {ulp.bd} \
-   CONFIG.LOCK_PROPAGATE {true} \
- ] $ulp
+  set ulp [ create_bd_cell -type container -reference ulp_training ulp ]
+  set_property -dict [list \
+    CONFIG.ACTIVE_SIM_BD {ulp_training.bd} \
+    CONFIG.ACTIVE_SYNTH_BD {ulp_training.bd} \
+    CONFIG.ENABLE_DFX {true} \
+    CONFIG.LIST_SIM_BD {ulp.bd:ulp_training.bd} \
+    CONFIG.LIST_SYNTH_BD {ulp.bd:ulp_training.bd} \
+    CONFIG.LOCK_PROPAGATE {true} \
+  ] $ulp
+
+
+  set_property SELECTED_SIM_MODEL rtl  $ulp
+  set_property APERTURES {{0x500_0000_0000 6G}} [get_bd_intf_pins /ulp/BLP_M_M00_INI_0]
+  set_property APERTURES {{0x500_0000_0000 6G}} [get_bd_intf_pins /ulp/BLP_M_M01_INI_0]
+  set_property APERTURES {{0x500_0000_0000 6G}} [get_bd_intf_pins /ulp/BLP_M_M02_INI_0]
   set_property APERTURES {{0x202_0000_0000 32M}} [get_bd_intf_pins /ulp/BLP_S_AXI_CTRL_USER_00]
+  set_property APERTURES {{0x200_0000_0000 4G}} [get_bd_intf_pins /ulp/BLP_S_INI_AIE_00]
+  set_property APERTURES {{0x202_0580_0000 2M}} [get_bd_intf_pins /ulp/BLP_S_INI_DBG_00]
 
   # Create interface connections
   connect_bd_intf_net -intf_net blp_ULP_M_AXI_CTRL_USER_00 [get_bd_intf_pins blp/ULP_M_AXI_CTRL_USER_00] [get_bd_intf_pins ulp/BLP_S_AXI_CTRL_USER_00]
@@ -2454,6 +2477,9 @@ proc create_root_design { parentCell} {
   save_bd_design;
 
   # Create address segments
+  assign_bd_address -offset 0x050000000000 -range 0x000180000000 -target_address_space [get_bd_addr_spaces ulp/axi_vip_0/Master_AXI] [get_bd_addr_segs blp/axi_noc_mc_1x/S04_INI/C1_DDR_CH1] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000180000000 -target_address_space [get_bd_addr_spaces ulp/axi_vip_1/Master_AXI] [get_bd_addr_segs blp/axi_noc_mc_1x/S05_INI/C2_DDR_CH1] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000180000000 -target_address_space [get_bd_addr_spaces ulp/axi_vip_2/Master_AXI] [get_bd_addr_segs blp/axi_noc_mc_1x/S07_INI/C0_DDR_CH1] -force
   assign_bd_address -offset 0x020000000000 -range 0x000100000000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_0] [get_bd_addr_segs ulp/ai_engine_0/S00_AXI/AIE_ARRAY_0] -force
   assign_bd_address -offset 0x020200000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_0] [get_bd_addr_segs ulp/axi_gpio_null_user/S_AXI/Reg] -force
   assign_bd_address -offset 0x020202020000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_0] [get_bd_addr_segs blp/blp_logic/ert_support/axi_intc_0_31/S_AXI/Reg] -force
@@ -2566,6 +2592,9 @@ proc create_root_design { parentCell} {
   exclude_bd_addr_seg -offset 0x020107000000 -range 0x00004000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/qdma_0/S_AXI_LITE_CSR/CTL0]
   exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/uuid_rom/S_AXI/reg0]
   exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/axi_noc_mc_1x/S06_INI/C3_DDR_CH1]
+  exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces ulp/axi_vip_0/Master_AXI] [get_bd_addr_segs blp/axi_noc_mc_1x/S04_INI/C1_DDR_LOW0]
+  exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces ulp/axi_vip_1/Master_AXI] [get_bd_addr_segs blp/axi_noc_mc_1x/S05_INI/C2_DDR_LOW0]
+  exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces ulp/axi_vip_2/Master_AXI] [get_bd_addr_segs blp/axi_noc_mc_1x/S07_INI/C0_DDR_LOW0]
 
 
   # Restore current instance
@@ -2633,10 +2662,3 @@ proc create_root_design { parentCell} {
 ##################################################################
 
 create_root_design ""
-
-set curdesign [current_bd_design]
-create_bd_design -boundary_from_container [get_bd_cells /ulp] training
-current_bd_design $curdesign
-set_property -dict [list CONFIG.LIST_SYNTH_BD {ulp.bd:training.bd} CONFIG.LIST_SIM_BD {ulp.bd:training.bd} CONFIG.TRAINING_MODULE {training.bd}] [get_bd_cells /ulp]
-validate_bd_design
-save_bd_design

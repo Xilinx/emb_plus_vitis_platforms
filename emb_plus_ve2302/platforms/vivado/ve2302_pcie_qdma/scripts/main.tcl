@@ -56,6 +56,7 @@ set_property ip_repo_paths $ip_repo_path [current_project]
 update_ip_catalog
 
 source $bd_tcl_dir/ulp.tcl
+source $bd_tcl_dir/training.tcl
 source $bd_tcl_dir/config_bd.tcl
 
 save_bd_design

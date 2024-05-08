@@ -421,8 +421,8 @@ proc create_root_design { parentCell } {
    CONFIG.WUSER_BITS_PER_BYTE {0} \
    CONFIG.WUSER_WIDTH {0} \
    ] $BLP_S_AXI_CTRL_USER_00
-  set_property HDL_ATTRIBUTE.LOCKED {true} [get_bd_intf_ports BLP_S_AXI_CTRL_USER_00]
   set_property APERTURES {{0x202_0000_0000 32M}} [get_bd_intf_ports BLP_S_AXI_CTRL_USER_00]
+  set_property HDL_ATTRIBUTE.LOCKED {true} [get_bd_intf_ports BLP_S_AXI_CTRL_USER_00]
 
   set BLP_S_INI_AIE_00 [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:inimm_rtl:1.0 BLP_S_INI_AIE_00 ]
   set_property -dict [ list \
@@ -558,17 +558,17 @@ proc create_root_design { parentCell } {
 
   set_property -dict [ list \
    CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x0 2G} {0x500_0000_0000 6G}} \
+   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
  ] [get_bd_intf_pins /axi_noc_kernel0/M00_INI]
 
   set_property -dict [ list \
    CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x0 2G} {0x500_0000_0000 6G}} \
+   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
  ] [get_bd_intf_pins /axi_noc_kernel0/M01_INI]
 
   set_property -dict [ list \
    CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x0 2G} {0x500_0000_0000 6G}} \
+   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
  ] [get_bd_intf_pins /axi_noc_kernel0/M02_INI]
 
   # Create instance: kernel_interrupt
@@ -630,9 +630,8 @@ proc create_root_design { parentCell } {
     CONFIG.NUM_SI {0} \
   ] $axi_noc_h2c
 
-
   set_property -dict [ list \
-   CONFIG.APERTURES {{0x202_0000_0000 2M}} \
+   CONFIG.APERTURES {{0x202_0000_0000 32M}} \
    CONFIG.CATEGORY {pl} \
  ] [get_bd_intf_pins /axi_noc_h2c/M00_AXI]
 

@@ -9,7 +9,7 @@ XSCT = $(XILINX_VITIS)/bin/xsct
 JOBS ?= 8
 SILICON ?= prod
 PLATFORM ?= ve2302_pcie_qdma
-VERSION ?= 202320_1
+VERSION ?= 202410_1
 
 ifeq ($(SILICON), es1)
   VIV_DESIGN = ve2302_es1_pcie_qdma

@@ -5,7 +5,7 @@
 enable_beta_device xcve2302-*
 set_param bitstream.enablePR 8519
 set_param bd.bdc.use_training_module 1
-set_param bd.test "no_noc_ini_stub"
+set_param bd.noc.use_stub_nmu 0
 
 # Set project variables
 set proj_dir ./project
@@ -56,6 +56,7 @@ set_property ip_repo_paths $ip_repo_path [current_project]
 update_ip_catalog
 
 source $bd_tcl_dir/ulp.tcl
+source $bd_tcl_dir/training.tcl
 source $bd_tcl_dir/config_bd.tcl
 
 save_bd_design

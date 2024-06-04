@@ -1,3 +1,5 @@
+# Copyright (C) 2023 - 2024 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: MIT
 
 ################################################################
 # This is a generated script based on design: ulp_training
@@ -18,33 +20,8 @@ variable script_folder
 set script_folder [_tcl::get_script_folder]
 
 ################################################################
-# Check if script is running in correct Vivado version.
-################################################################
-set scripts_vivado_version 2024.1
-set current_vivado_version [version -short]
-
-if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
-   puts ""
-   common::send_gid_msg -ssname BD::TCL -id 2040 -severity "CRITICAL WARNING" "This script was generated using Vivado <$scripts_vivado_version> without IP versions in the create_bd_cell commands, but is now being run in <$current_vivado_version> of Vivado. There may have been changes to the IP between Vivado <$scripts_vivado_version> and <$current_vivado_version>, which could impact the functionality and configuration of the design."
-
-}
-
-################################################################
 # START
 ################################################################
-
-# To test this script, run the following commands from Vivado Tcl console:
-# source ulp_training_script.tcl
-
-# If there is no project opened, this script will create a
-# project, but make sure you do not have an existing project
-# <./myproj/project_1.xpr> in the current working folder.
-
-set list_projs [get_projects -quiet]
-if { $list_projs eq "" } {
-   create_project project_1 myproj -part xcve2302-sfva784-2MP-e-S-es1
-}
-
 
 # CHANGE DESIGN NAME HERE
 variable design_name
@@ -87,7 +64,7 @@ if { ${design_name} eq "" } {
    set errMsg "Design <$design_name> already exists in your project, please set the variable <design_name> to another value."
    set nRet 1
 } elseif { [get_files -quiet ${design_name}.bd] ne "" } {
-   # USE CASES: 
+   # USE CASES:
    #    6) Current opened design, has components, but diff names, design_name exists in project.
    #    7) No opened design, design_name exists in project.
 
@@ -121,7 +98,7 @@ set bCheckIPsPassed 1
 ##################################################################
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
-   set list_check_ips "\ 
+   set list_check_ips "\
 xilinx.com:ip:util_ff:*\
 xilinx.com:ip:xlconstant:*\
 xilinx.com:ip:axi_dbg_hub:*\
@@ -258,10 +235,13 @@ proc create_hier_cell_reset_controllers { parentCell nameHier } {
 
 
   # Create port connections
-  connect_bd_net -net clk_kernel0_1 [get_bd_pins clk_kernel0] [get_bd_pins pipereg_kernel0/clk] [get_bd_pins reset_sync_kernel0/slowest_sync_clk]
-  connect_bd_net -net clk_kernel1_1 [get_bd_pins clk_kernel1] [get_bd_pins pipereg_kernel1/clk] [get_bd_pins reset_sync_kernel1/slowest_sync_clk]
+  connect_bd_net -net clk_kernel0_1 [get_bd_pins clk_kernel0] [get_bd_pins pipereg_kernel0/clk] -boundary_type upper
+  connect_bd_net -net clk_kernel0_1 [get_bd_pins clk_kernel0] [get_bd_pins reset_sync_kernel0/slowest_sync_clk] -boundary_type upper
+  connect_bd_net -net clk_kernel1_1 [get_bd_pins clk_kernel1] [get_bd_pins pipereg_kernel1/clk] -boundary_type upper
+  connect_bd_net -net clk_kernel1_1 [get_bd_pins clk_kernel1] [get_bd_pins reset_sync_kernel1/slowest_sync_clk] -boundary_type upper
   connect_bd_net -net clk_pcie_1 [get_bd_pins clk_pcie] [get_bd_pins pipereg_pcie0/clk]
-  connect_bd_net -net clk_pl_axi_1 [get_bd_pins clk_pl_axi] [get_bd_pins pipereg_pl_axi0/clk] [get_bd_pins reset_sync_fixed/slowest_sync_clk]
+  connect_bd_net -net clk_pl_axi_1 [get_bd_pins clk_pl_axi] [get_bd_pins pipereg_pl_axi0/clk] -boundary_type upper
+  connect_bd_net -net clk_pl_axi_1 [get_bd_pins clk_pl_axi] [get_bd_pins reset_sync_fixed/slowest_sync_clk] -boundary_type upper
   connect_bd_net -net pipereg_kernel0_q [get_bd_pins pipereg_kernel0/Q] [get_bd_pins resetn_kernel0_ic]
   connect_bd_net -net pipereg_kernel1_q [get_bd_pins pipereg_kernel1/Q] [get_bd_pins resetn_kernel1_ic]
   connect_bd_net -net pipereg_pcie0_q [get_bd_pins pipereg_pcie0/Q] [get_bd_pins resetn_pcie_axi]
@@ -270,8 +250,14 @@ proc create_hier_cell_reset_controllers { parentCell nameHier } {
   connect_bd_net -net reset_sync_kernel0_peripheral_aresetn [get_bd_pins reset_sync_kernel0/peripheral_aresetn] [get_bd_pins peripheral_aresetn]
   connect_bd_net -net reset_sync_kernel1_interconnect_aresetn [get_bd_pins reset_sync_kernel1/interconnect_aresetn] [get_bd_pins pipereg_kernel1/D]
   connect_bd_net -net resetn_pcie_1 [get_bd_pins resetn_pcie] [get_bd_pins pipereg_pcie0/D]
-  connect_bd_net -net resetn_ulp_1 [get_bd_pins resetn_ulp] [get_bd_pins pipereg_pl_axi0/D] [get_bd_pins reset_sync_kernel0/ext_reset_in] [get_bd_pins reset_sync_kernel1/ext_reset_in] [get_bd_pins reset_sync_fixed/ext_reset_in]
-  connect_bd_net -net rstn_const_dout [get_bd_pins rstn_const/dout] [get_bd_pins pipereg_kernel0/reset] [get_bd_pins pipereg_kernel1/reset] [get_bd_pins pipereg_pcie0/reset] [get_bd_pins pipereg_pl_axi0/reset]
+  connect_bd_net -net resetn_ulp_1 [get_bd_pins resetn_ulp] [get_bd_pins pipereg_pl_axi0/D] -boundary_type upper
+  connect_bd_net -net resetn_ulp_1 [get_bd_pins resetn_ulp] [get_bd_pins reset_sync_kernel0/ext_reset_in] -boundary_type upper
+  connect_bd_net -net resetn_ulp_1 [get_bd_pins resetn_ulp] [get_bd_pins reset_sync_kernel1/ext_reset_in] -boundary_type upper
+  connect_bd_net -net resetn_ulp_1 [get_bd_pins resetn_ulp] [get_bd_pins reset_sync_fixed/ext_reset_in] -boundary_type upper
+  connect_bd_net -net rstn_const_dout [get_bd_pins rstn_const/dout] [get_bd_pins pipereg_kernel0/reset] -boundary_type upper
+  connect_bd_net -net rstn_const_dout [get_bd_pins rstn_const/dout] [get_bd_pins pipereg_kernel1/reset] -boundary_type upper
+  connect_bd_net -net rstn_const_dout [get_bd_pins rstn_const/dout] [get_bd_pins pipereg_pcie0/reset] -boundary_type upper
+  connect_bd_net -net rstn_const_dout [get_bd_pins rstn_const/dout] [get_bd_pins pipereg_pl_axi0/reset] -boundary_type upper
 
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -314,7 +300,7 @@ proc create_hier_cell_kernel_interrupt { parentCell nameHier } {
   # Create interface pins
 
   # Create pins
-  create_bd_pin -dir O -from 127 -to 0 xlconcat_interrupt_dout
+  create_bd_pin -dir O -from 32 -to 0 xlconcat_interrupt_dout
 
   # Create instance: xlconcat_0, and set properties
   set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat xlconcat_0 ]
@@ -325,7 +311,7 @@ proc create_hier_cell_kernel_interrupt { parentCell nameHier } {
   set xlconstant_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant xlconstant_0 ]
   set_property -dict [list \
     CONFIG.CONST_VAL {0} \
-    CONFIG.CONST_WIDTH {96} \
+    CONFIG.CONST_WIDTH {1} \
   ] $xlconstant_0
 
 
@@ -489,7 +475,7 @@ proc create_root_design { parentCell } {
 
 
   # Create ports
-  set blp_m_irq_kernel_00 [ create_bd_port -dir O -from 127 -to 0 -type intr blp_m_irq_kernel_00 ]
+  set blp_m_irq_kernel_00 [ create_bd_port -dir O -from 32 -to 0 -type intr blp_m_irq_kernel_00 ]
   set blp_s_aclk_ctrl_00 [ create_bd_port -dir I -type clk -freq_hz 99999001 blp_s_aclk_ctrl_00 ]
   set_property -dict [ list \
    CONFIG.CLK_DOMAIN {blp_cips_0_pl0_ref_clk} \
@@ -593,17 +579,17 @@ proc create_root_design { parentCell } {
 
   set_property -dict [ list \
    CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x0 2G} {0x500_0000_0000 6G}} \
+   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
  ] [get_bd_intf_pins /axi_noc_kernel0/M00_INI]
 
   set_property -dict [ list \
    CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x0 2G} {0x500_0000_0000 6G}} \
+   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
  ] [get_bd_intf_pins /axi_noc_kernel0/M01_INI]
 
   set_property -dict [ list \
    CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x0 2G} {0x500_0000_0000 6G}} \
+   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
  ] [get_bd_intf_pins /axi_noc_kernel0/M02_INI]
 
   set_property -dict [ list \
@@ -690,7 +676,7 @@ proc create_root_design { parentCell } {
 
 
   set_property -dict [ list \
-   CONFIG.APERTURES {{0x202_0000_0000 1G}} \
+   CONFIG.APERTURES {{0x202_0000_0000 32M}} \
    CONFIG.CATEGORY {pl} \
  ] [get_bd_intf_pins /axi_noc_h2c/M00_AXI]
 
@@ -798,16 +784,27 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net axi_vip_2_M_AXI [get_bd_intf_pins axi_vip_2/M_AXI] [get_bd_intf_pins axi_noc_kernel0/S02_AXI]
 
   # Create port connections
-  connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_0/aresetn] [get_bd_pins axi_vip_1/aresetn] [get_bd_pins axi_vip_2/aresetn]
+  connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_0/aresetn]
+  connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_1/aresetn]
+  connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_2/aresetn]
+
   connect_bd_net -net ai_engine_0_s00_axi_aclk [get_bd_pins ai_engine_0/s00_axi_aclk] [get_bd_pins axi_noc_aie_prog/aclk0]
   connect_bd_net -net blp_m_ext_tog_ctrl_kernel_00_enable_net [get_bd_pins ip_gnd_ext_tog_kernel_00_null/dout] [get_bd_ports blp_m_ext_tog_ctrl_kernel_00_enable]
   connect_bd_net -net blp_m_ext_tog_ctrl_kernel_01_enable_net [get_bd_pins ip_gnd_ext_tog_kernel_01_null/dout] [get_bd_ports blp_m_ext_tog_ctrl_kernel_01_enable]
-  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_gpio_null_user/s_axi_aclk] [get_bd_pins axi_ic_user/aclk] [get_bd_pins reset_controllers/clk_pl_axi]
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_gpio_null_user/s_axi_aclk]
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_ic_user/aclk]
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins reset_controllers/clk_pl_axi]
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_vip_0/aclk]
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_vip_1/aclk]
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_vip_2/aclk]
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_noc_kernel0/aclk0]
   connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_ports blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_pipe_ext_tog_kernel_00_null/clk]
   connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_ports blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_pipe_ext_tog_kernel_01_null/clk]
-  connect_bd_net -net blp_s_aclk_kernel_00_1 [get_bd_ports blp_s_aclk_kernel_00] [get_bd_pins reset_controllers/clk_kernel0] [get_bd_pins axi_noc_kernel0/aclk0] [get_bd_pins axi_vip_2/aclk] [get_bd_pins axi_vip_1/aclk] [get_bd_pins axi_vip_0/aclk]
+  connect_bd_net -net blp_s_aclk_kernel_00_1 [get_bd_ports blp_s_aclk_kernel_00] [get_bd_pins reset_controllers/clk_kernel0]
   connect_bd_net -net blp_s_aclk_kernel_01_1 [get_bd_ports blp_s_aclk_kernel_01] [get_bd_pins reset_controllers/clk_kernel1]
-  connect_bd_net -net blp_s_aclk_pcie_00_1 [get_bd_ports blp_s_aclk_pcie_00] [get_bd_pins axi_dbg_hub/aclk] [get_bd_pins reset_controllers/clk_pcie] [get_bd_pins axi_noc_h2c/aclk0]
+  connect_bd_net -net blp_s_aclk_pcie_00_1 [get_bd_ports blp_s_aclk_pcie_00] [get_bd_pins axi_dbg_hub/aclk]
+  connect_bd_net -net blp_s_aclk_pcie_00_1 [get_bd_ports blp_s_aclk_pcie_00] [get_bd_pins reset_controllers/clk_pcie]
+  connect_bd_net -net blp_s_aclk_pcie_00_1 [get_bd_ports blp_s_aclk_pcie_00] [get_bd_pins axi_noc_h2c/aclk0]
   connect_bd_net -net blp_s_aresetn_pcie_reset_00_1 [get_bd_ports blp_s_aresetn_pcie_reset_00] [get_bd_pins reset_controllers/resetn_pcie]
   connect_bd_net -net blp_s_aresetn_pr_reset_00_1 [get_bd_ports blp_s_aresetn_pr_reset_00] [get_bd_pins reset_controllers/resetn_ulp]
   connect_bd_net -net blp_s_ext_tog_ctrl_kernel_00_out_net [get_bd_ports blp_s_ext_tog_ctrl_kernel_00_out] [get_bd_pins ip_pipe_ext_tog_kernel_00_null/D]
@@ -817,7 +814,8 @@ proc create_root_design { parentCell } {
   connect_bd_net -net ip_pipe_ext_tog_kernel_01_null_q [get_bd_pins ip_pipe_ext_tog_kernel_01_null/Q] [get_bd_ports blp_m_ext_tog_ctrl_kernel_01_in]
   connect_bd_net -net kernel_interrupt_xlconcat_interrupt_dout [get_bd_pins kernel_interrupt/xlconcat_interrupt_dout] [get_bd_ports blp_m_irq_kernel_00]
   connect_bd_net -net resetn_pcie_axi_net [get_bd_pins reset_controllers/resetn_pcie_axi] [get_bd_pins axi_dbg_hub/aresetn]
-  connect_bd_net -net resetn_pl_axi_net [get_bd_pins reset_controllers/resetn_pl_axi] [get_bd_pins axi_gpio_null_user/s_axi_aresetn] [get_bd_pins axi_ic_user/aresetn]
+  connect_bd_net -net resetn_pl_axi_net [get_bd_pins reset_controllers/resetn_pl_axi] [get_bd_pins axi_gpio_null_user/s_axi_aresetn]
+  connect_bd_net -net resetn_pl_axi_net [get_bd_pins reset_controllers/resetn_pl_axi] [get_bd_pins axi_ic_user/aresetn]
 
   # Create address segments
   assign_bd_address -offset 0x050000000000 -range 0x000180000000 -target_address_space [get_bd_addr_spaces axi_vip_0/Master_AXI] [get_bd_addr_segs BLP_M_M00_INI_0/Reg] -force

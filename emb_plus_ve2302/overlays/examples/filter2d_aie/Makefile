@@ -85,12 +85,12 @@ VERSION = 1.0
 SILICON ?= prod
 MAINTAINER = AMD
 BOARD = ve2302
-EXAMPLE = yuy2-filter2d-plio
+EXAMPLE = filter2d-aie
 ifeq ($(SILICON),es1)
-	DEB_BUILD_DIR = xrt-yuy2-filter2d-plio-test-$(BOARD)-$(SILICON)
+	DEB_BUILD_DIR = xrt-filter2d-aie-test-$(BOARD)-$(SILICON)
 	DEB_DIR = $(DEB_BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma-$(SILICON)/base/test/
 else
-	DEB_BUILD_DIR = xrt-yuy2-filter2d-plio-test-$(BOARD)
+	DEB_BUILD_DIR = xrt-filter2d-aie-test-$(BOARD)
 	DEB_DIR = $(DEB_BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
 endif 
 

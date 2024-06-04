@@ -690,7 +690,7 @@ proc create_root_design { parentCell } {
   current_bd_instance $oldCurInst
 
   # Create PFM attributes
-  set_property PFM_NAME {xilinx.com:rave_ve2302:ve2302_pcie_qdma:1.0} [get_files [current_bd_design].bd]
+  set_property PFM_NAME {xilinx.com:emb_plus_ve2302:ve2302_pcie_qdma:1.0} [get_files [current_bd_design].bd]
   set_property PFM.CLOCK {blp_s_aclk_kernel_00 {id "0" is_default "true" proc_sys_reset "/reset_controllers/reset_sync_kernel0" status "scalable" freq_hz "299996999"}} [get_bd_ports /blp_s_aclk_kernel_00]
   set_property PFM.CLOCK {blp_s_aclk_kernel_01 {id "1" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_kernel1" status "scalable" freq_hz "249997499"}} [get_bd_ports /blp_s_aclk_kernel_01]
   set_property PFM.CLOCK {blp_s_aclk_ctrl_00 {id "2" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_fixed" status "fixed" freq_hz "99999001"}} [get_bd_ports /blp_s_aclk_ctrl_00]

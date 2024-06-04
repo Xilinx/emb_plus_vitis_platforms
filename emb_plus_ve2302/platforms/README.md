@@ -7,11 +7,12 @@ The Makefile in this folder creates a RAVE Vitis platform.
 To create the Vitis platform, run the following command:
 
 ```
-make platform PLATFORM=<platform_name>
+make platform PLATFORM=<platform_name> [SILICON=<es1,prod>]
 ```
 Options for platform_name are
    - ve2302_pcie_qdma
 
+Default option for SILICON is Production (prod).
 
 The Makefile uses the XSA from the vivado project to generate a platform.
 The generated platform will be located at:

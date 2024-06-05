@@ -310,7 +310,7 @@ proc create_hier_cell_kernel_interrupt { parentCell nameHier } {
   # Create interface pins
 
   # Create pins
-  create_bd_pin -dir O -from 127 -to 0 xlconcat_interrupt_dout
+  create_bd_pin -dir O -from 32 -to 0 xlconcat_interrupt_dout
 
   # Create instance: xlconcat_0, and set properties
   set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat xlconcat_0 ]
@@ -321,7 +321,7 @@ proc create_hier_cell_kernel_interrupt { parentCell nameHier } {
   set xlconstant_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant xlconstant_0 ]
   set_property -dict [list \
     CONFIG.CONST_VAL {0} \
-    CONFIG.CONST_WIDTH {96} \
+    CONFIG.CONST_WIDTH {1} \
   ] $xlconstant_0
 
 
@@ -455,7 +455,7 @@ proc create_root_design { parentCell } {
 
 
   # Create ports
-  set blp_m_irq_kernel_00 [ create_bd_port -dir O -from 127 -to 0 -type intr blp_m_irq_kernel_00 ]
+  set blp_m_irq_kernel_00 [ create_bd_port -dir O -from 32 -to 0 -type intr blp_m_irq_kernel_00 ]
   set blp_s_aclk_ctrl_00 [ create_bd_port -dir I -type clk -freq_hz 99999001 blp_s_aclk_ctrl_00 ]
   set_property -dict [ list \
    CONFIG.CLK_DOMAIN {blp_cips_0_pl0_ref_clk} \
@@ -690,7 +690,7 @@ proc create_root_design { parentCell } {
   current_bd_instance $oldCurInst
 
   # Create PFM attributes
-  set_property PFM_NAME {xilinx.com:rave_ve2302:ve2302_pcie_qdma:1.0} [get_files [current_bd_design].bd]
+  set_property PFM_NAME {xilinx.com:emb_plus_ve2302:ve2302_pcie_qdma:1.0} [get_files [current_bd_design].bd]
   set_property PFM.CLOCK {blp_s_aclk_kernel_00 {id "0" is_default "true" proc_sys_reset "/reset_controllers/reset_sync_kernel0" status "scalable" freq_hz "299996999"}} [get_bd_ports /blp_s_aclk_kernel_00]
   set_property PFM.CLOCK {blp_s_aclk_kernel_01 {id "1" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_kernel1" status "scalable" freq_hz "249997499"}} [get_bd_ports /blp_s_aclk_kernel_01]
   set_property PFM.CLOCK {blp_s_aclk_ctrl_00 {id "2" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_fixed" status "fixed" freq_hz "99999001"}} [get_bd_ports /blp_s_aclk_ctrl_00]

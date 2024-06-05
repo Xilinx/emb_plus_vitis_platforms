@@ -852,7 +852,7 @@ proc create_hier_cell_dfx_decoupling { parentCell nameHier } {
   create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 ULP_M_AXI_CTRL_USER_00
 
   # Create pins
-  create_bd_pin -dir O -from 127 -to 0 -type intr blp_m_irq_kernel_00
+  create_bd_pin -dir O -from 32 -to 0 -type intr blp_m_irq_kernel_00
   create_bd_pin -dir O -from 0 -to 0 -type intr blp_m_dbg_hub_fw_00
   create_bd_pin -dir I -type clk blp_s_aclk_ctrl_00
   create_bd_pin -dir I -type clk clk_pl_pcie
@@ -860,7 +860,7 @@ proc create_hier_cell_dfx_decoupling { parentCell nameHier } {
   create_bd_pin -dir I -from 0 -to 0 -type rst blp_s_aresetn_pr_reset_00
   create_bd_pin -dir O -from 0 -to 0 -type rst ulp_m_aresetn_pcie_reset_00
   create_bd_pin -dir O -from 0 -to 0 -type rst ulp_m_aresetn_pr_reset_00
-  create_bd_pin -dir I -from 127 -to 0 -type intr ulp_s_irq_kernel_00
+  create_bd_pin -dir I -from 32 -to 0 -type intr ulp_s_irq_kernel_00
   create_bd_pin -dir I -type intr ulp_s_dbg_hub_fw_00
   create_bd_pin -dir I -type clk blp_s_aclk_ext_tog_kernel_00
   create_bd_pin -dir I -type clk blp_s_aclk_ext_tog_kernel_01
@@ -1197,7 +1197,7 @@ proc create_hier_cell_blp_logic { parentCell nameHier} {
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:pcie3_cfg_ext_rtl:1.0 s_pcie4_cfg_ext
 
   # Create pins
-  create_bd_pin -dir I -from 127 -to 0 Din
+  create_bd_pin -dir I -from 32 -to 0 Din
   create_bd_pin -dir O -type clk clk_kernel0
   create_bd_pin -dir O -type clk clk_kernel1
   create_bd_pin -dir I -type clk clk_pcie
@@ -1641,7 +1641,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
   create_bd_pin -dir O -type clk ulp_m_aclk_pcie_00
   create_bd_pin -dir O -from 0 -to 0 -type rst ulp_m_aresetn_pcie_reset_00
   create_bd_pin -dir O -from 0 -to 0 -type rst ulp_m_aresetn_pr_reset_00
-  create_bd_pin -dir I -from 127 -to 0 -type intr ulp_s_irq_kernel_00
+  create_bd_pin -dir I -from 32 -to 0 -type intr ulp_s_irq_kernel_00
   create_bd_pin -dir O -type clk ulp_m_aclk_ext_tog_kernel_00
   create_bd_pin -dir O -type clk ulp_m_aclk_ext_tog_kernel_01
   create_bd_pin -dir O ulp_m_ext_tog_ctrl_kernel_00_out

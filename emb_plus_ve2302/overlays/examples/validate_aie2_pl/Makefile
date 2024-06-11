@@ -4,17 +4,18 @@
 YEAR = $(shell date '+%Y')
 MONTH = $(shell date '+%m')
 VERSION = 1.0
-
 CURDIR = $(shell pwd)
+REPO_PATH = $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(CURDIR)))))
+COMMON_PATH = $(REPO_PATH)/common
 SRC = $(CURDIR)/src
-
 RM = rm -rf
 MV = mv
-
+PYTHON = python3
+META_GEN = $(COMMON_PATH)/gen_metadata.py
+VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma
+XUTIL = xclbinutil
 PLATFORM ?=
-
 PLATFORM_NAME = $(strip $(patsubst %.xpfm, % , $(shell basename $(PLATFORM))))
-
 
 include utils.mk
 
@@ -23,6 +24,7 @@ VPP = v++
 MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 CUR_DIR := $(patsubst %/,%,$(dir $(MK_PATH)))
 SRC_DIR = .
+META_JSON =  $(CURDIR)/validate_aie2pl_partition_metadata.json
 
 # setting devault value
 TARGET ?= hw
@@ -49,6 +51,10 @@ else
 	BUILD_DIR = xrt-aie-test-$(BOARD)
 	DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
 endif 
+
+VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
+VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi
+
 PKGNAME = $(BUILD_DIR)_$(VERSION)
 CONTROL_FILE = $(BUILD_DIR)/DEBIAN/control
 CONTROL_CONTENT = "Package: $(BUILD_DIR)\nArchitecture: all\nVersion: $(VERSION)\nPriority: optional\nDescription: $(EXAMPLE) firmware\nMaintainer: $(MAINTAINER)\n"
@@ -94,9 +100,9 @@ BINARY_CONTAINER_OBJS += $(PL_CONT_XO_FILE)
 BINARY_CONTAINER_OBJS += $(SEND_REC_XO_FILE)
 BINARY_CONTAINER_DEPS += $(BINARY_CONTAINER_OBJS)
 BINARY_CONTAINER_DEPS += $(AIE_CONTAINER)
-BINARY_CONTAINER = pl_controller_aie
-XSA_FILE = $(BINARY_CONTAINER).xsa
-XCLBIN_FILE = $(TEMP_DIR)/link/int/$(BINARY_CONTAINER).xclbin
+BINARY_CONTAINER = $(TEMP_DIR)/link/int/pl_controller_aie.xclbin
+XSA_FILE = pl_controller_aie.xsa
+XCLBIN_FILE = $(CURDIR)/pl_controller_aie.xclbin
 
 ############################## Setting Targets ##############################
 
@@ -104,7 +110,13 @@ XCLBIN_FILE = $(TEMP_DIR)/link/int/$(BINARY_CONTAINER).xclbin
 all: xclbin $(DEB_FILE)
 
 xclbin: $(XCLBIN_FILE)
-$(XCLBIN_FILE): $(XSA_FILE)
+$(XCLBIN_FILE): $(BINARY_CONTAINER)
+	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -o $(META_JSON)
+	$(XUTIL) --input $(BINARY_CONTAINER) --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $(XCLBIN_FILE)
+	-@$(RM) $(META_JSON) *data.txt
+
+xclbin_cont: $(BINARY_CONTAINER)
+$(BINARY_CONTAINER): $(XSA_FILE)
 	${VPP} -p -t ${TARGET} -f ${PLATFORM} ${AIE_CONTAINER} --package.boot_mode=ospi --package.defer_aie_run -o $@ $^ 
 $(XSA_FILE): $(BINARY_CONTAINER_OBJS) $(AIE_CONTAINER)
 	$(VPP) -l $(VPP_FLAGS) -t $(TARGET) --platform $(PLATFORM) --temp_dir $(TEMP_DIR) --report_dir $(BUILD_REPORT_DIR) $(VPP_LDFLAGS) -o $@ $^

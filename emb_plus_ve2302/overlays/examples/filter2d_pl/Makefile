@@ -3,6 +3,14 @@
 
 RM = rm -rf
 MV = mv
+CURDIR = $(shell pwd)
+REPO_PATH = $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(CURDIR)))))
+COMMON_PATH = $(REPO_PATH)/common
+PYTHON = python3
+META_GEN = $(COMMON_PATH)/gen_metadata.py
+VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma
+XUTIL = xclbinutil 
+META_JSON =  $(CURDIR)/filter2d_pl_partition_metadata.json
 
 # v++ flags
 VPP ?= v++
@@ -11,16 +19,13 @@ LINK_CFG ?= kernel.cfg
 JOBS ?= 32
 VPP_LINK_FLAGS = -l -t hw --platform $(PLATFORM) --save-temps \
 	--report_level estimate -j $(JOBS) --config $(LINK_CFG)
-XBU = xclbinutil
-XBU_FLAGS = --remove-section BITSTREAM --force
 
 # kernels and xclbin
 KERNEL_OBJS += kernel/filter2d_pl_accel/filter2d_pl_accel.xo
-BINARY_CONTAINER = filter2d_pl.xclbin
-XCLBIN_FILE = _x/link/int/$(BINARY_CONTAINER)
+BINARY_CONTAINER = _x/link/int/filter2d_pl.xclbin
+XCLBIN_FILE = $(CURDIR)/filter2d_pl.xclbin
 XSA_FILE = filter2d_pl.xsa
 CLK_FREQ = 299996999
-
 
 ## deb package script location
 VERSION = 1.0
@@ -36,17 +41,26 @@ else
 	BUILD_DIR = $(EXAMPLE)-$(BOARD)
 	DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
 endif
+
+VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
+VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi
+
 CONTROL_CONTENT = "Package: $(BUILD_DIR)\nArchitecture: all\nVersion: $(VERSION)\nPriority: optional\nDescription: $(EXAMPLE) firmware\nMaintainer: $(MAINTAINER)\n"
 PKGNAME = $(BUILD_DIR)_$(VERSION)
 DEB_FILE = $(PKGNAME).deb
 
 # Rules
 .PHONY: all
-all: $(KERNEL_OBJS) $(XSA_FILE) $(DEB_FILE)
+all: $(KERNEL_OBJS) $(XSA_FILE) $(DEB_FILE) $(XCLBIN_FILE)
 
 .PHONY: xclbin
 xclbin: $(XCLBIN_FILE)
-$(XCLBIN_FILE): $(XSA_FILE)
+$(XCLBIN_FILE): $(BINARY_CONTAINER)
+	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -o $(META_JSON)
+	$(XUTIL) --input $(BINARY_CONTAINER) --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $(XCLBIN_FILE)
+	-@$(RM) $(META_JSON) *data.txt
+
+$(BINARY_CONTAINER): $(XSA_FILE)
 $(XSA_FILE): $(KERNEL_OBJS)
 	$(VPP) $(VPP_LINK_FLAGS) -o $@ $(+)
 	-@$(RM) .Xil

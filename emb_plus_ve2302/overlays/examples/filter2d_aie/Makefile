@@ -4,12 +4,17 @@
 YEAR = $(shell date '+%Y')
 MONTH = $(shell date '+%m')
 VERSION = 1
-
-CURDIR = $(shell pwd) 
+CURDIR = $(shell pwd)
+REPO_PATH = $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(CURDIR)))))
+COMMON_PATH = $(REPO_PATH)/common
 SRC = $(CURDIR)/src
-
 RMDIR = rm -rf
 MV = mv
+PYTHON = python3
+META_GEN = $(COMMON_PATH)/gen_metadata.py
+VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma
+XUTIL = xclbinutil
+META_JSON =  $(CURDIR)/filter2d_aie_partition_metadata.json
 
 PLATFORM ?=
 PLATFORM_NAME = $(strip $(patsubst %.xpfm, % , $(shell basename $(PLATFORM))))
@@ -52,8 +57,6 @@ else
 XILINX_VITIS_AIETOOLS := $(XILINX_VITIS)/cardano
 endif
 
-
-
 ############################ setting AIE Compiler ###########################
 
 AIETARGET := hw
@@ -94,19 +97,30 @@ else
 	DEB_DIR = $(DEB_BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
 endif 
 
+VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
+VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi
+
 CONTROL_FILE = $(DEB_BUILD_DIR)/DEBIAN/control
 CONTROL_CONTENT = "Package: $(DEB_BUILD_DIR)\nArchitecture: all\nVersion: $(VERSION)\nPriority: optional\nDescription: $(EXAMPLE) firmware\nMaintainer: $(MAINTAINER)\n"
 PKGNAME = $(DEB_BUILD_DIR)_$(VERSION)
 DEB_FILE = $(PKGNAME).deb
-
+XCLBIN_FILE = $(CURDIR)/kernel_pkg.xclbin
 
 ############################## Setting Targets ##############################
 
 .PHONY: all xclbin 
 all: xclbin $(XSA_FILE) $(DEB_FILE)
-xclbin:  $(BINARY_CONTAINERS)
+
+.PHONY: xclbin
+xclbin:  $(XCLBIN_FILE)
+$(XCLBIN_FILE): $(BINARY_CONTAINERS)
+	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -o $(META_JSON)
+	$(XUTIL) --input $^ --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $@
+	-@$(RM) $(META_JSON) *data.txt
+
 $(BINARY_CONTAINERS): $(XSA_FILE) $(AIE_CONTAINER)
-	${VPP} -p -t ${TARGET} -f ${PLATFORM} ${AIE_CONTAINER} --package.boot_mode=ospi --package.defer_aie_run -o $@ $^ 	
+	${VPP} -p -t ${TARGET} -f ${PLATFORM} ${AIE_CONTAINER} --package.boot_mode=ospi --package.defer_aie_run -o $@ $^ 
+
 
 $(XSA_FILE): $(AIE_CONTAINER) 
 	mkdir -p $(BUILD_DIR)
@@ -126,7 +140,7 @@ $(AIE_CONTAINER): $(SRC_DIR_2)/graph.cpp $(SRC_DIR_2)/xf_filter2d.cc
 
 .PHONY: deb
 deb: $(DEB_FILE)
-$(DEB_FILE): $(BINARY_CONTAINERS)
+$(DEB_FILE): $(XCLBIN_FILE)
 	mkdir -p $(DEB_DIR)
 	cp $^ $(DEB_DIR)
 	mkdir -p $(DEB_BUILD_DIR)/DEBIAN

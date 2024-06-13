@@ -34,7 +34,7 @@ SRC_DIR_2 = $(realpath $(SRC_DIR_2_RELATIVE))
 XO_SRC_RELATIVE = ../../../../common/xf_opencv/L1/lib/hw/
 XO_SRC = $(realpath $(XO_SRC_RELATIVE))
 
-# setting devault value
+# setting default value
 TARGET ?= hw
 TEMP_DIR := _x
 TEMP_REPORT_DIR := $(CUR_DIR)/reports/_x.$(TARGET).$(PLATFORM_NAME)
@@ -77,18 +77,18 @@ VPP_FLAGS +=  -I $(SRC_DIR_2)
 VPP_LDFLAGS +=  --config system.cfg
 VPP_LDFLAGS += --clock.freqHz 400000000:Tiler_top_1  --clock.freqHz 400000000:stitcher_top_1  $(XO_SRC_RELATIVE)/tiler.xo  $(XO_SRC_RELATIVE)/stitcher.xo
 
-######################### binary container global settings ##########################
 
-BINARY_CONTAINERS = $(TEMP_DIR)/link/int/kernel_pkg.xclbin
-XSA_FILE = $(BUILD_DIR)/kernel_pkg.xsa
-
-################### deb package generation variables ###############
+################### deb package generation variables and binary container global settings ###############
 
 VERSION = 1.0
 SILICON ?= prod
 MAINTAINER = AMD
 BOARD = ve2302
 EXAMPLE = filter2d-aie
+XSA_FILE = $(BUILD_DIR)/filter2d_aie.xsa
+BINARY_CONTAINERS = $(TEMP_DIR)/link/int/filter2d_aie.xclbin
+XCLBIN_FILE = $(CURDIR)/filter2d_aie.xclbin
+
 ifeq ($(SILICON),es1)
 	DEB_BUILD_DIR = xrt-filter2d-aie-test-$(BOARD)-$(SILICON)
 	DEB_DIR = $(DEB_BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma-$(SILICON)/base/test/
@@ -104,7 +104,6 @@ CONTROL_FILE = $(DEB_BUILD_DIR)/DEBIAN/control
 CONTROL_CONTENT = "Package: $(DEB_BUILD_DIR)\nArchitecture: all\nVersion: $(VERSION)\nPriority: optional\nDescription: $(EXAMPLE) firmware\nMaintainer: $(MAINTAINER)\n"
 PKGNAME = $(DEB_BUILD_DIR)_$(VERSION)
 DEB_FILE = $(PKGNAME).deb
-XCLBIN_FILE = $(CURDIR)/kernel_pkg.xclbin
 
 ############################## Setting Targets ##############################
 
@@ -116,7 +115,7 @@ xclbin:  $(XCLBIN_FILE)
 $(XCLBIN_FILE): $(BINARY_CONTAINERS)
 	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -o $(META_JSON)
 	$(XUTIL) --input $^ --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $@
-	-@$(RM) $(META_JSON) *data.txt
+	-@$(RM) $(BINARY_CONTAINERS)
 
 $(BINARY_CONTAINERS): $(XSA_FILE) $(AIE_CONTAINER)
 	${VPP} -p -t ${TARGET} -f ${PLATFORM} ${AIE_CONTAINER} --package.boot_mode=ospi --package.defer_aie_run -o $@ $^ 
@@ -171,4 +170,5 @@ clean:
 	-$(RMDIR) _x_temp.hw.* build_dir.hw.* 
 	-$(RMDIR) $(CUR_DIR)/Work  $(CUR_DIR)/reports $(BUILD_DIR)
 	-$(RMDIR) $(DEB_BUILD_DIR) $(DEB_FILE)
+	-$(RMDIR) $(META_JSON) *data.txt
 

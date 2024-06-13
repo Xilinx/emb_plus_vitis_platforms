@@ -58,7 +58,7 @@ xclbin: $(XCLBIN_FILE)
 $(XCLBIN_FILE): $(BINARY_CONTAINER)
 	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -o $(META_JSON)
 	$(XUTIL) --input $(BINARY_CONTAINER) --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $(XCLBIN_FILE)
-	-@$(RM) $(META_JSON) *data.txt
+	-@$(RM) $(BINARY_CONTAINER)
 
 $(BINARY_CONTAINER): $(XSA_FILE)
 $(XSA_FILE): $(KERNEL_OBJS)
@@ -87,6 +87,7 @@ clean: clean-subdirs
 	-$(RM) *.info .crashReporter kernel/.crashReporter
 	-$(RM) *.link_summary* *.package_summary* *.ltx
 	-$(RM) $(BUILD_DIR) $(DEB_FILE)
+	-$(RM) $(META_JSON) *data.txt
 
 clean-subdirs:
 	$(MAKE) -C kernel clean

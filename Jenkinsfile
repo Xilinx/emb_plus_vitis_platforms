@@ -130,9 +130,7 @@ def deployOverlay() {
         mkdir -p ${DSTDIR}
         TMPDIR=$(mktemp -d -p .)
         chmod go+rx ${TMPDIR}
-        cp -f ${example_dir}/_x/link/int/*.xclbin ${TMPDIR}/${board}-${overlay}.xclbin
-        cp -f ${example_dir}/_x/link/int/partial.pdi ${TMPDIR}/${board}-${overlay}.pdi
-        cp -f ${example_dir}/*.xsa ${TMPDIR}/${board}-${overlay}.xsa
+        cp -f ${example_dir}/*.xclbin ${TMPDIR}
         cp -f ${example_dir}/*.deb ${TMPDIR}
         cp ${ws}/commitIDs ${TMPDIR}
         rsync -avh --delete ${TMPDIR}/ ${DSTDIR}/

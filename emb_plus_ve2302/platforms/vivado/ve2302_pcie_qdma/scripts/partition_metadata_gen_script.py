@@ -133,8 +133,6 @@ partition_header_str_4 = '''            {{
                 "interface_uuid": "{interface_uuid}"
             }}'''
 
-interface_uuid = "01fc70e30e731fbcfe5ba8009f8a22e5"
-
 partition_header_str_5 = '''        ],
         "pcie":
         {'''
@@ -538,8 +536,8 @@ uuid_file_location = run_bootgen(pdi_file_name,uuid_txt_file)
 uuid_list = extract_uuid(uuid_file_location)            ## uuid_list = [[id,uniqueId,parentID,functionID]
 
 ## You can also change the id associated with either interface uuid or logic uuid in the following list assignment
-interface_uuid_str = uuid_list[1]
-logic_uuid_str = uuid_list[2]
+interface_uuid_str = uuid_list[1]	#unique id 
+logic_uuid_str = uuid_list[1]		#unique id 
 interface_uuid_int = int(interface_uuid_str,16)
 logic_uuid_int  = int(logic_uuid_str,16)
 interface_uuid = "{:032x}".format(interface_uuid_int)

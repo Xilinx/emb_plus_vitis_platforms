@@ -31,7 +31,7 @@ VIV_XSA = $(VIV_PRJ_DIR)/$(VIV_DESIGN).xsa
 VIV_SRC = $(VIV_SCRIPTS_DIR)/main.tcl
 VIV_CONFIG = $(VIV_SCRIPTS_DIR)/config_bd.tcl
 VIV_ULP = $(VIV_SCRIPTS_DIR)/ulp.tcl
-VIV_PDI = $(VIV_PRJ_DIR)/$(VIV_DESIGN).runs/impl_1/$(VIV_DESIGN)_i_ulp_ulp_inst_0_partial.pdi
+VIV_PDI = $(VIV_PRJ_DIR)/$(VIV_DESIGN).runs/impl_1/$(VIV_DESIGN)_wrapper.pdi
 
 
 .PHONY: help

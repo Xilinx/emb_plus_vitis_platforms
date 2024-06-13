@@ -5,14 +5,21 @@ YEAR = $(shell date '+%Y')
 MONTH = $(shell date '+%m')
 VERSION = 1.0
 CURDIR = $(shell pwd)
+REPO_PATH = $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(CURDIR)))))
+COMMON_PATH = $(REPO_PATH)/common
 SRC = ./src
 RM = rm -rf
 MV = mv
+PYTHON = python3
+META_GEN = $(COMMON_PATH)/gen_metadata.py
+VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma
+XUTIL = xclbinutil 
 
 # Kernel name
 KERNEL ?= bandwidth
 KERNEL_XO = $(KERNEL).xo
 SRC_FILE = $(SRC)/$(KERNEL).cpp
+META_JSON =  $(CURDIR)/$(KERNEL)_partition_metadata.json
 
 # v++ flags
 VPP = v++
@@ -42,17 +49,20 @@ else
 	DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
 endif
 
+VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
+VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi
+
 PKGNAME = $(BUILD_DIR)_$(VERSION)
 CONTROL_FILE = $(BUILD_DIR)/DEBIAN/control
 CONTROL_CONTENT = "Package: $(BUILD_DIR)\nArchitecture: all\nVersion: $(VERSION)\nPriority: optional\nDescription: $(KERNEL) firmware\nMaintainer: $(MAINTAINER)\n"
 DEB_FILE = $(PKGNAME).deb
 TEMP_DIR = _x
 BINARY_CONTAINER = $(TEMP_DIR)/link/int/$(KERNEL).xclbin
-
+XCLBIN_FILE = $(CURDIR)/$(KERNEL).xclbin
 
 # Rules
 .PHONY: all
-all: $(SRC_FILE) $(KERNEL_XO) $(XSA_FILE) $(DEB_FILE)
+all: $(SRC_FILE) $(KERNEL_XO) $(XSA_FILE) $(DEB_FILE) $(XCLBIN_FILE)
 
 $(KERNEL_XO): $(SRC_FILE)
 	@mkdir -p $(@D)
@@ -61,7 +71,11 @@ $(KERNEL_XO): $(SRC_FILE)
 	-@$(RM) .Xil
 
 .PHONY: xclbin
-xclbin: $(BINARY_CONTAINER)
+$(XCLBIN_FILE): $(BINARY_CONTAINER)
+	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -o $(META_JSON)
+	$(XUTIL) --input $(BINARY_CONTAINER) --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $(XCLBIN_FILE)
+	-@$(RM) $(META_JSON) *data.txt
+
 $(BINARY_CONTAINER): $(XSA_FILE)
 $(XSA_FILE): $(KERNEL_XO)
 	$(VPP) $(VPP_LINK_FLAGS) -o $@ $(+)
@@ -69,7 +83,7 @@ $(XSA_FILE): $(KERNEL_XO)
 
 .PHONY: deb
 deb: $(DEB_FILE)
-$(DEB_FILE): $(BINARY_CONTAINER)
+$(DEB_FILE): $(XCLBIN_FILE)
 	mkdir -p $(DEB_DIR)
 	cp $^ $(DEB_DIR)
 	mkdir -p $(BUILD_DIR)/DEBIAN

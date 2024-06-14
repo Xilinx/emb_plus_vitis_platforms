@@ -113,7 +113,7 @@ xclbin: $(XCLBIN_FILE)
 $(XCLBIN_FILE): $(BINARY_CONTAINER)
 	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -o $(META_JSON)
 	$(XUTIL) --input $(BINARY_CONTAINER) --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $(XCLBIN_FILE)
-	-@$(RM) $(META_JSON) *data.txt
+	-@$(RM) $(BINARY_CONTAINER)
 
 xclbin_cont: $(BINARY_CONTAINER)
 $(BINARY_CONTAINER): $(XSA_FILE)
@@ -169,4 +169,5 @@ clean:
 	-$(RMDIR) .nfs* *.xsa *.ltx *.link_summary
 	-$(RMDIR) $(CUR_DIR)/Work  $(CUR_DIR)/reports $(BUILD_DIR)
 	-$(RMDIR) $(BUILD_DIR) $(DEB_FILE)
+	-$(RMDIR) $(META_JSON) *data.txt
 

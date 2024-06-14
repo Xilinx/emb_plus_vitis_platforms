@@ -310,7 +310,7 @@ uuid_file_location = run_bootgen(pdi_file_name,uuid_txt_file)
 uuid_list = extract_uuid(uuid_file_location)
 
 # Interface ID from the list 
-interface_uuid_str = uuid_list[1]
+interface_uuid_str = uuid_list[2]
 interface_uuid_int = int(interface_uuid_str,16)
 interface_uuid = "{:032x}".format(interface_uuid_int)
 

@@ -1,6 +1,7 @@
 # Copyright (C) 2023 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
+SHELL = bash
 YEAR = $(shell date '+%Y')
 MONTH = $(shell date '+%m')
 VERSION = 1
@@ -143,6 +144,7 @@ $(DEB_FILE): $(XCLBIN_FILE)
 	mkdir -p $(DEB_DIR)
 	cp $^ $(DEB_DIR)
 	mkdir -p $(DEB_BUILD_DIR)/DEBIAN
+	chmod 00755 $(DEB_BUILD_DIR)/DEBIAN
 	@echo -e $(CONTROL_CONTENT) > $(CONTROL_FILE)
 	@echo "Now generating the debian package"
 	dpkg-deb --build ./$(DEB_BUILD_DIR)

@@ -33,7 +33,7 @@ VPP_XO_FLAGS = -c -t hw --platform $(PLATFORM) --save-temps \
 
 VPP_LINK_FLAGS = -l -t hw --platform $(PLATFORM) --save-temps \
 	--report_level estimate -j $(JOBS) \
-	--temp_dir ./_x \
+	--temp_dir ./_x
 
 # XSA file name
 XSA_FILE = $(KERNEL).xsa
@@ -48,9 +48,10 @@ ifeq ($(SILICON),es1)
 else
 	BUILD_DIR = xrt-$(KERNEL)-test-$(BOARD)
 	DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
-endif 
+endif
 
 VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
+ULP_CONFIG = $(VIV_DIR)/scripts/ulp.tcl
 VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi
 
 PKGNAME = $(BUILD_DIR)_$(VERSION)
@@ -73,7 +74,7 @@ $(KERNEL_XO): $(SRC_FILE)
 
 .PHONY: xclbin
 $(XCLBIN_FILE): $(BINARY_CONTAINER)
-	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -o $(META_JSON)
+	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -ulp $(ULP_CONFIG) -o $(META_JSON)
 	$(XUTIL) --input $(BINARY_CONTAINER) --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $(XCLBIN_FILE)
 	-@$(RM) $(BINARY_CONTAINER)
 
@@ -103,7 +104,6 @@ help:
 	@echo "make clean"
 	@echo "Command to remove the generated files. "
 	@echo ""
-
 
 .PHONY: clean
 clean:

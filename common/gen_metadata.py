@@ -11,11 +11,13 @@ import argparse
 parser = argparse.ArgumentParser(description="Partition_metadata generation - required files")
 parser.add_argument("-pdi",required=True, help="Project_Partial.pdi (partial PDI image) required")
 parser.add_argument("-config", required=True, help="config_bd.tcl file")
+parser.add_argument("-ulp", required=True, help="ulp.tcl file")
 parser.add_argument("-o","--output", help="metadata file name", default="./overlay_partition_metadata.json")
 
 args = parser.parse_args()
 pdi_file_name = args.pdi
 config_bd_file_path = args.config
+ulp_bd_file_path = args.ulp
 metadata_file_path = args.output
 current_path = os.getcwd()
 generated_file_name = "overlay_partition_metadata.json  " # Generated file name "overlay_partition_metadata.json"
@@ -85,6 +87,7 @@ bar_address_Regex = re.compile(r'CONFIG.pf\d_pciebar2axibar_\d {(0x[0-9a-fA-F]+)
 bar_scale_Regex = re.compile(r'CONFIG.pf\d_bar\d_scale_qdma {([0-9a-zA-Z]+)} \\')
 bar_size_Regex = re.compile(r'CONFIG.pf\d_bar\d_size_qdma {(\d*)} \\')
 connected_bd_cell_Regex = re.compile (r'get_bd_cells /([0-9a-zA-Z_]+)/([0-9a-zA-Z_]+)/([0-9a-zA-Z_/]+)]')
+simple_bd_cell_Regex = re.compile (r'get_bd_cells ([0-9a-zA-Z_/]+)]')
 only_ep_Regex = re.compile (r'ep_([0-9a-zA-Z_]+)')
 ep_partRegex = re.compile (r'([0-9a-zA-Z_]+) ([dict create)? ep_([0-9a-zA-Z_]+)')
 ep_properties_Regex = re.compile(r' -offset (0x[0-9a-fA-F]+) -range (0x[0-9a-fA-F]+)')
@@ -137,7 +140,7 @@ def extract_qdma_bar_info(config_bd_file_path):
     return pfbar_list
 
 # Returns the range and offset for each PF and bar
-def extract_bars_ranges_offsets(pfbar_list,config_bd_file_path):
+def extract_bars_ranges_offsets(pfbar_list,config_bd_file_path,ulp_bd_file_path):
     bar_address_list=[]
     bar_scale_list=[]
     bar_size_list=[]
@@ -188,7 +191,7 @@ def write_bars(pfbar_list,bar_address_list, bar_range_list):
         j=j+1;
     return bar_string_list
 
-    
+
 # Generates the partition_metadata file and append text to it
 def metadata_file_header(metadata_file_path):
     file = open(metadata_file_path,'w')
@@ -217,34 +220,33 @@ def extract_endpoints (config_bd_file_path):
         cells = []
         for line in file:
             if "set_property PFM.XRT_ENDPOINT" in line:
-                right_place = True;
+                right_place = True
                 ep_list=[]
             if right_place:
                 if "ep_" in line and "debug" in line:
-                    ep_part_mo = ep_partRegex.search(line);
+                    ep_part_mo = ep_partRegex.search(line)
                     extract_ep_only = ep_part_mo.group(2)
                     if "[dict create" in extract_ep_only:
                         only_ep_mo = only_ep_Regex.search(extract_ep_only)
                         ep_tuple = (ep_part_mo.group(1),only_ep_mo.group(0))
                         ep_list.append(ep_tuple)
                     endpoints.append("ep_"+ep_part_mo[0])
-                if "get_bd_cells /blp/blp_logic" in line and "dbg" in line:
-                    connected_bd_cells_mo = connected_bd_cell_Regex.findall(line)
-                    connected_tuple = connected_bd_cells_mo[0]
-                    cells.append(connected_tuple[2])
+                if "get_bd_cells" in line and "axi_dbg_hub" in line:
+                    simple_bd_cell = simple_bd_cell_Regex.findall(line)
+                    cells.append(simple_bd_cell[0])
                     end_points_list.append(ep_list)
                     right_place = False
     return cells,end_points_list
 
 
-def extract_ep_features(cells, end_points_list, config_bd_file_path):
+def extract_ep_features(cells, end_points_list, ulp_bd_file_path):
     ep_range_list=[]
     ep_offset_list=[]
     for i in range(len(cells)):
         for j in end_points_list[i]:
             ep_interface = j[0]
             searchable_str = "{}/{}".format(cells[i],ep_interface)
-            with open (config_bd_file_path, 'r') as file:
+            with open (ulp_bd_file_path, 'r') as file:
                 for line in file:
                     if "assign_bd_address" in line and searchable_str in line:
                         ep_properties_mo = ep_properties_Regex.search(line)
@@ -259,7 +261,7 @@ def extract_ep_features(cells, end_points_list, config_bd_file_path):
                         break
     return ep_range_list, ep_offset_list
 
-# Extracts the actual PF and Base address for each endpoint and adjust offsets 
+# Extracts the actual PF and Base address for each endpoint and adjust offsets
 def ep_offset_pf_add_base_adj(ep_offset_list,bar_address_list,pfbar_list):
     adjusted_offset_list = []
     ep_pf_list = []
@@ -276,23 +278,22 @@ def ep_offset_pf_add_base_adj(ep_offset_list,bar_address_list,pfbar_list):
         ep_ba_list.append(ep_ba)
     return ep_pf_list, ep_ba_list, adjusted_offset_list
 
-def metadata_file_generation(metadata_file_path,config_bd_file_path):
+def metadata_file_generation(metadata_file_path,config_bd_file_path,ulp_bd_file_path):
     metadata_file_header(metadata_file_path)
     pfbar_list = extract_qdma_bar_info(config_bd_file_path)
-    bar_address_list, bar_scale_list, bar_size_list = extract_bars_ranges_offsets(pfbar_list,config_bd_file_path)
+    bar_address_list, bar_scale_list, bar_size_list = extract_bars_ranges_offsets(pfbar_list,config_bd_file_path,ulp_bd_file_path)
     bar_range_list = get_range(bar_size_list,bar_scale_list)
     file = open(metadata_file_path,'a')
     file.write(addressable_endpoints_str)
     file.write('\n')
-    cells,end_points_list = extract_endpoints (config_bd_file_path)
-    ep_range_list, ep_offset_list  = extract_ep_features(cells, end_points_list, config_bd_file_path)
+    cells,end_points_list = extract_endpoints (ulp_bd_file_path)
+    ep_range_list, ep_offset_list  = extract_ep_features(cells, end_points_list, ulp_bd_file_path)
     ep_pf_list, ep_ba_list, adjusted_offset_list = ep_offset_pf_add_base_adj(ep_offset_list,bar_address_list,pfbar_list)
 
     endpoints_names_list = []
     for j in end_points_list:
         for l in j:
             endpoints_names_list.append(l[1])
-
     for k in range (len(endpoints_names_list)):
         endpoint_segment = addressable_endpoints.format(ep_name=endpoints_names_list[k],ep_offset=adjusted_offset_list[k], ep_range=ep_range_list[k], ep_pf=ep_pf_list[k], ep_base_address=ep_ba_list[k])
         file.write(endpoint_segment)
@@ -309,13 +310,13 @@ def metadata_file_generation(metadata_file_path,config_bd_file_path):
 uuid_file_location = run_bootgen(pdi_file_name,uuid_txt_file)
 uuid_list = extract_uuid(uuid_file_location)
 
-# Interface ID from the list 
+# Interface ID from the list
 interface_uuid_str = uuid_list[2]
 interface_uuid_int = int(interface_uuid_str,16)
 interface_uuid = "{:032x}".format(interface_uuid_int)
 
 
-metadata_file_generation(metadata_file_path,config_bd_file_path)
+metadata_file_generation(metadata_file_path,config_bd_file_path,ulp_bd_file_path)
 print("overlay_partition_metadata.json has been successfully generated!")
 print("Please check the file located at " + metadata_file_path)
 

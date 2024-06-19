@@ -54,6 +54,7 @@ else
 endif 
 
 VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
+ULP_CONFIG = $(VIV_DIR)/scripts/ulp.tcl
 VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi
 
 PKGNAME = $(BUILD_DIR)_$(VERSION)
@@ -112,7 +113,7 @@ all: xclbin $(DEB_FILE)
 
 xclbin: $(XCLBIN_FILE)
 $(XCLBIN_FILE): $(BINARY_CONTAINER)
-	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -o $(META_JSON)
+	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -ulp $(ULP_CONFIG) -o $(META_JSON)
 	$(XUTIL) --input $(BINARY_CONTAINER) --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $(XCLBIN_FILE)
 	-@$(RM) $(BINARY_CONTAINER)
 

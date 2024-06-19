@@ -680,10 +680,15 @@ proc create_root_design { parentCell } {
   connect_bd_net -net resetn_pl_axi_net [get_bd_pins reset_controllers/resetn_pl_axi] [get_bd_pins axi_gpio_null_user/s_axi_aresetn]
   connect_bd_net -net resetn_pl_axi_net [get_bd_pins reset_controllers/resetn_pl_axi] [get_bd_pins axi_ic_user/aresetn]
 
+  set_property PFM.XRT_ENDPOINT \
+    [dict create \
+      S_AXI [dict create ep_debug_hub_user_00 [dict create reg_abs "xilinx.com:reg_abs:debug_hub:1.0"]] \
+    ] [get_bd_cells axi_dbg_hub]
+
   # Create address segments
-  assign_bd_address -offset 0x202_0000_0000 -range 4k   -target_address_space [get_bd_addr_spaces BLP_S_AXI_CTRL_USER_00]   [get_bd_addr_segs axi_gpio_null_user/S_AXI/Reg]
-  assign_bd_address -offset 0x200_0000_0000 -range 512M -target_address_space [get_bd_addr_spaces BLP_S_INI_AIE_00]         [get_bd_addr_segs ai_engine_0/S00_AXI/AIE_ARRAY_0]
-  assign_bd_address -offset 0x202_0580_0000 -range 2M   -target_address_space [get_bd_addr_spaces BLP_S_INI_DBG_00]         [get_bd_addr_segs axi_dbg_hub/S_AXI_DBG_HUB/Mem0] -force
+  assign_bd_address -offset 0x20200000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces BLP_S_AXI_CTRL_USER_00]   [get_bd_addr_segs axi_gpio_null_user/S_AXI/Reg]
+  assign_bd_address -offset 0x20000000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces BLP_S_INI_AIE_00]         [get_bd_addr_segs ai_engine_0/S00_AXI/AIE_ARRAY_0]
+  assign_bd_address -offset 0x20205800000 -range 0x00200000 -target_address_space [get_bd_addr_spaces BLP_S_INI_DBG_00]         [get_bd_addr_segs axi_dbg_hub/S_AXI_DBG_HUB/Mem0] -force
 
 
   # Restore current instance

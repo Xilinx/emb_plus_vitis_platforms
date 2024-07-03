@@ -4,7 +4,7 @@
 set CurrentPath [pwd]
 
 set BasePath [regsub {\/emb_plus_ve2302\/.*$} [pwd] ""]
-set script [regsub {\/emb_plus_ve2302\/.*$} [pwd] ""]/common/xf_opencv/ext/xf_rtl_utils.tcl
+set script [regsub {\/emb_plus_ve2302\/.*$} [pwd] ""]/common/Vitis_Libraries/vision/ext/xf_rtl_utils.tcl
 
 source -notrace $script
 

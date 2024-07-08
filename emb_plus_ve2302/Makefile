@@ -7,7 +7,7 @@ PWD = $(shell readlink -f .)
 
 # the platform directory has to be an absolute path when passed to v++
 PFM_DIR = $(PWD)/platforms
-PFM_VER = 202410_1
+PFM_VER = 202420_1
 
 # valid platforms / overlays
 PFM_LIST += ve2302_pcie_qdma

@@ -99,6 +99,7 @@ else
 endif 
 
 VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
+ULP_CONFIG = $(VIV_DIR)/scripts/ulp.tcl
 VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi
 
 CONTROL_FILE = $(DEB_BUILD_DIR)/DEBIAN/control
@@ -114,7 +115,7 @@ all: xclbin $(XSA_FILE) $(DEB_FILE)
 .PHONY: xclbin
 xclbin:  $(XCLBIN_FILE)
 $(XCLBIN_FILE): $(BINARY_CONTAINERS)
-	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -o $(META_JSON)
+	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -ulp $(ULP_CONFIG) -o $(META_JSON)
 	$(XUTIL) --input $^ --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $@
 	-@$(RM) $(BINARY_CONTAINERS)
 

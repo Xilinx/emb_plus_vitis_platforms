@@ -122,6 +122,22 @@ def deployOverlay() {
     '''
 }
 
+def updateDeploySuccess() {
+    sh label: 'update deploy success symlink',
+    script: '''
+        if [ "${BUILD_TYPE}" == "daily" ]; then
+            if [ -d "${DEPLOY_DIR}" ]; then
+                pushd ${DEPLOY_BASE_DIR}
+                if [ -e daily_latest ]; then
+                    rm daily_latest
+                fi
+                ln -s ${BUILD_ID} daily_latest
+                popd
+            fi
+        fi
+    '''
+}
+
 pipeline {
     agent {
         label 'Build_Master'
@@ -537,6 +553,9 @@ pipeline {
         }
     }
     post {
+        success {
+            updateDeploySuccess()
+        }
         cleanup {
             cleanWs()
         }

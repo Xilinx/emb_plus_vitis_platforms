@@ -138,6 +138,25 @@ def updateDeploySuccess() {
     '''
 }
 
+def cleanDeployDir() {
+    sh label: 'clean deploy dir',
+    script: '''
+        DIR=${DEPLOY_BASE_DIR}/${tool_release}/${BUILD_TYPE}
+        cnt=$(find $DIR -maxdepth 1 -mindepth 1 -type d | wc -l)
+        if [[ $cnt -gt $DEPLOY_MAX ]]; then
+            dcnt=$(($cnt-$DEPLOY_MAX))
+            # delete old build artifacts, retain DEPLOY_MAX most recent
+            list=( $(find $DIR -maxdepth 1 -mindepth 1 -exec ls -trd1 {} + | head -n $dcnt) )
+            for i in "${list[@]}"; do
+                echo "Delete build output folder $i"
+                rm -rf $i
+            done
+        else
+            echo "Number of build output folders not greater than $DEPLOY_MAX: $cnt"
+        fi
+    '''
+}
+
 pipeline {
     agent {
         label 'Build_Master'
@@ -159,6 +178,7 @@ pipeline {
         DEPLOY_BASE_DIR="/wrk/paeg_builds/build-artifacts/emb-plus-vitis-platforms"
         DEPLOY_DIR="${DEPLOY_BASE_DIR}/${tool_release}/${BUILD_TYPE}/${BUILD_ID}"
         DEPLOY_PFM_DIR="${DEPLOY_BASE_DIR}/${tool_release}/daily/daily_latest/platforms"
+        DEPLOY_MAX=10
     }
     options {
         // don't let the implicit checkout happen
@@ -558,6 +578,7 @@ pipeline {
         }
         cleanup {
             cleanWs()
+            cleanDeployDir()
         }
     }
 }

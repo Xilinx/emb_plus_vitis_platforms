@@ -137,10 +137,12 @@ pipeline {
         lsf="${ws}/paeg-helper/scripts/lsf"
         PAEG_LSF_MEM=65536
         PAEG_LSF_QUEUE="long"
-        BUILD_TYPE="${env.BRANCH_NAME == env.deploy_branch ? 'daily_latest' : 'pr_latest'}"
+        BUILD_DATE=sh(script: 'date +"%m%d%H%M" | tr -d "\n"', returnStdout: true)
+        BUILD_TYPE="${env.BRANCH_NAME == env.deploy_branch ? 'daily' : 'pr'}"
+        BUILD_ID="${env.BRANCH_NAME == env.deploy_branch ? env.BUILD_DATE : env.BRANCH_NAME}"
         DEPLOY_BASE_DIR="/wrk/paeg_builds/build-artifacts/emb-plus-vitis-platforms"
-        DEPLOY_DIR="${DEPLOY_BASE_DIR}/${tool_release}/${BUILD_TYPE}"
-        DEPLOY_PFM_DIR="${DEPLOY_BASE_DIR}/${tool_release}/daily_latest/platforms"
+        DEPLOY_DIR="${DEPLOY_BASE_DIR}/${tool_release}/${BUILD_TYPE}/${BUILD_ID}"
+        DEPLOY_PFM_DIR="${DEPLOY_BASE_DIR}/${tool_release}/daily/daily_latest/platforms"
     }
     options {
         // don't let the implicit checkout happen

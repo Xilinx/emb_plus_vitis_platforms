@@ -26,6 +26,9 @@ def logCommitIDs() {
         git rev-parse HEAD >> ${idfile}
         popd
         cat ${idfile}
+        if [ -d "${DEPLOY_DIR}" ]; then
+            cp ${idfile} ${DEPLOY_DIR}
+        fi
     '''
 }
 
@@ -52,15 +55,13 @@ def buildPlatform() {
 def deployPlatform() {
     sh label: 'platform deploy',
     script: '''
-        if [ "${BRANCH_NAME}" == "${deploy_branch}" ]; then
-            DEPLOYDIR=${DEPLOYDIR}/daily_latest
-        else
-            DEPLOYDIR=${DEPLOYDIR}/pr_latest
-        fi
         pushd ${work_dir}/${board}
-        DSTDIR=${DEPLOYDIR}/platforms
+        board=$(echo ${board} | tr _ -)
+        if [ "${silicon}" != "prod" ]; then
+            board=${board}-${silicon}
+        fi
+        DSTDIR=${DEPLOY_DIR}/${board}
         mkdir -p ${DSTDIR}/${pfm}
-        cp ${ws}/commitIDs platforms/${pfm}
         rsync -avh --delete platforms/${pfm}/ ${DSTDIR}/${pfm}/
         popd
     '''
@@ -69,11 +70,6 @@ def deployPlatform() {
 def deployPlatformFirmware() {
     sh label: 'platform firmware deploy',
     script: '''
-        if [ "${BRANCH_NAME}" == "${deploy_branch}" ]; then
-            DEPLOYDIR=${DEPLOYDIR}/daily_latest
-        else
-            DEPLOYDIR=${DEPLOYDIR}/pr_latest
-        fi
         pushd ${work_dir}/${board}
         mkdir -p tmp
         unzip platforms/${pfm}/hw/${pfm_name}.xsa -d tmp
@@ -83,13 +79,16 @@ def deployPlatformFirmware() {
         bootgen -arch zynqmp -process_bitstream bin -image bootgen.bif
         popd
         fw=$(echo ${pfm_name} | tr _ -)
-        DSTDIR=${DEPLOYDIR}/firmware/${fw}
+        board=$(echo ${board} | tr _ -)
+        if [ "${silicon}" != "prod" ]; then
+            board=${board}-${silicon}
+        fi
+        DSTDIR=${DEPLOY_DIR}/${board}/${fw}
         mkdir -p ${DSTDIR}
         TMPDIR=$(mktemp -d -p .)
         chmod go+rx ${TMPDIR}
         cp -f tmp/${pfm_name}.bit ${TMPDIR}/${fw}.bit
         cp -f tmp/${pfm_name}.bit.bin ${TMPDIR}/${fw}.bin
-        cp ${ws}/commitIDs ${TMPDIR}
         rsync -avh --delete ${TMPDIR}/ ${DSTDIR}/
         popd
     '''
@@ -101,9 +100,9 @@ def buildOverlay() {
         pushd ${work_dir}/${board}
         if [ -d platforms/${pfm} ]; then
             echo "Using platform from local build"
-        elif [ -d ${DEPLOYDIR}/daily_latest/platforms/${pfm} ]; then
+        elif [ -d ${DEPLOY_PFM_DIR}/${pfm} ]; then
             echo "Using platform from build artifacts"
-            ln -s ${DEPLOYDIR}/daily_latest/platforms/${pfm} platforms/
+            ln -s ${DEPLOY_PFM_DIR}/${pfm} platforms/
         else
             echo "No valid platform found: ${pfm}"
             exit 1
@@ -118,22 +117,52 @@ def buildOverlay() {
 def deployOverlay() {
     sh label: 'overlay deploy',
     script: '''
-        if [ "${BRANCH_NAME}" == "${deploy_branch}" ]; then
-            DEPLOYDIR=${DEPLOYDIR}/daily_latest
-        else
-            DEPLOYDIR=${DEPLOYDIR}/pr_latest
-        fi
+        board=$(echo ${board} | tr _ -)
         if [ "${silicon}" != "prod" ]; then
-            board=${board}_${silicon}
+            board=${board}-${silicon}
         fi
-        DSTDIR=${DEPLOYDIR}/firmware/${board}-${overlay}
+        DSTDIR=${DEPLOY_DIR}/${board}/${board}-${overlay}
         mkdir -p ${DSTDIR}
         TMPDIR=$(mktemp -d -p .)
         chmod go+rx ${TMPDIR}
         cp -f ${example_dir}/*.xclbin ${TMPDIR}
         cp -f ${example_dir}/*.deb ${TMPDIR}
-        cp ${ws}/commitIDs ${TMPDIR}
         rsync -avh --delete ${TMPDIR}/ ${DSTDIR}/
+    '''
+}
+
+def updateDeploySuccess() {
+    sh label: 'update deploy success symlink',
+    script: '''
+        if [ "${BRANCH_NAME}" == "${deploy_branch}" ]; then
+            if [ -d "${DEPLOY_DIR}" ]; then
+                pushd ${DEPLOY_BASE_DIR}
+                if [ -e daily_latest ]; then
+                    rm daily_latest
+                fi
+                ln -s ${BUILD_ID} daily_latest
+                popd
+            fi
+        fi
+    '''
+}
+
+def cleanDeployDir() {
+    sh label: 'clean deploy dir',
+    script: '''
+        DIR=${DEPLOY_BASE_DIR}
+        cnt=$(find $DIR -maxdepth 1 -mindepth 1 -type d | wc -l)
+        if [[ $cnt -gt $DEPLOY_MAX ]]; then
+            dcnt=$(($cnt-$DEPLOY_MAX))
+            # delete old build artifacts, retain DEPLOY_MAX most recent
+            list=( $(find $DIR -maxdepth 1 -mindepth 1 -exec ls -trd1 {} + | head -n $dcnt) )
+            for i in "${list[@]}"; do
+                echo "Delete build output folder $i"
+                rm -rf $i
+            done
+        else
+            echo "Number of build output folders not greater than $DEPLOY_MAX: $cnt"
+        fi
     '''
 }
 
@@ -152,7 +181,14 @@ pipeline {
         lsf="${ws}/paeg-helper/scripts/lsf"
         PAEG_LSF_MEM=65536
         PAEG_LSF_QUEUE="long"
-        DEPLOYDIR="/wrk/paeg_builds/build-artifacts/emb-plus-vitis-platforms/${tool_release}"
+        BUILD_DATE=sh(script: 'date +"%m%d%H%M" | tr -d "\n"', returnStdout: true)
+        BUILD_ID="${env.BRANCH_NAME == env.deploy_branch ? env.BUILD_DATE : env.BRANCH_NAME}"
+        PAEG_BASE_DIR="/wrk/paeg_builds/build-artifacts/emb-plus-vitis-platforms/${tool_release}"
+        YOCTO_BASE_DIR="/proj/yocto/rave_artifacts/${tool_release}/hw"
+        DEPLOY_BASE_DIR="${env.BRANCH_NAME == env.deploy_branch ? env.YOCTO_BASE_DIR : env.PAEG_BASE_DIR}"
+        DEPLOY_DIR="${DEPLOY_BASE_DIR}/${BUILD_ID}"
+        DEPLOY_PFM_DIR="${YOCTO_BASE_DIR}/daily_latest/platforms"
+        DEPLOY_MAX=15
     }
     options {
         // don't let the implicit checkout happen
@@ -192,7 +228,6 @@ pipeline {
                         url: 'https://gitenterprise.xilinx.com/PAEG/paeg-automation.git'
                     ]]
                 ])
-                logCommitIDs()
             }
         }
         stage('Create Build Directories') {
@@ -547,8 +582,15 @@ pipeline {
         }
     }
     post {
+        always {
+            logCommitIDs()
+        }
+        success {
+            updateDeploySuccess()
+        }
         cleanup {
             cleanWs()
+            cleanDeployDir()
         }
     }
 }

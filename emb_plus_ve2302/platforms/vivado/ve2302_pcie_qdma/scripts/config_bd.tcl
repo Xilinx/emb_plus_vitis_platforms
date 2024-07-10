@@ -208,7 +208,6 @@ if { $bCheckIPsPassed != 1 } {
   return 3
 }
 
-
 ##################################################################
 # DESIGN PROCs
 ##################################################################
@@ -434,7 +433,7 @@ refclk_PROT0_R0_100_MHz_unique1} \
     CONFIG.vfg0_msix_enabled {false} \
     CONFIG.vfg1_msix_enabled {false} \
     CONFIG.warm_reboot_sbr_fix {false} \
-    CONFIG.xlnx_ref_board {None} \
+    CONFIG.xlnx_ref_board {emb-plus-vpr-4616} \
   ] $pcie
 
   # Create instance: pcie_phy, and set properties
@@ -1606,11 +1605,6 @@ proc create_hier_cell_blp { parentCell nameHier} {
   create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 ULP_M_AXI_CTRL_USER_00
   set_property APERTURES {{{0x202_0000_0000 32M}}} [get_bd_intf_pins ULP_M_AXI_CTRL_USER_00]
 
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:lpddr4_rtl:1.0 CH0_LPDDR4_0
-
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:lpddr4_rtl:1.0 CH1_LPDDR4_0
-
-  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 sys_clk_0
 
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 pcie_refclk
 
@@ -1645,97 +1639,92 @@ proc create_hier_cell_blp { parentCell nameHier} {
   create_bd_pin -dir I ulp_s_ext_tog_ctrl_kernel_01_in
   create_bd_pin -dir I -type intr ulp_s_dbg_hub_fw_00
 
-  # Create instance: cips, and set properties
-  set cips [ create_bd_cell -type ip -vlnv xilinx.com:ip:versal_cips cips ]
+##################################################################
+# Board Automation
+##################################################################
+
+set cips [ create_bd_cell -type ip -vlnv xilinx.com:ip:versal_cips cips ]
+
+apply_bd_automation -rule xilinx.com:bd_rule:cips \
+  -config { \
+    board_preset {Yes} \
+    boot_config {Custom} \
+    configure_noc {Add new AXI NoC} \
+    debug_config {JTAG} \
+    design_flow {Full System} \
+    mc_type {LPDDR} \
+    num_mc_ddr {None} \
+    num_mc_lpddr {1} \
+    pl_clocks {2} \
+    pl_resets {1} \
+  }  $cips
+
+# Copy NOC as axi_noc_mc_1x to keep all the DDR settings
+copy_bd_objs /blp  [get_bd_cells {axi_noc_0}]
+set_property name axi_noc_mc_1x [get_bd_cells /blp/axi_noc_1]
+
+# Change settings to use INI ports and match settings used in non-automated flow
+# Also add anything the partition metadata script needs to see
+startgroup
+set_property -dict [list \
+  CONFIG.MC_CH_INTERLEAVING_SIZE {256_Bytes} \
+  CONFIG.NUM_NSI {8} \
+  CONFIG.NUM_SI {0} \
+  CONFIG.CONTROLLERTYPE {LPDDR4_SDRAM} \
+  CONFIG.MC_CHAN_REGION1 {DDR_CH1} \
+] [get_bd_cells axi_noc_mc_1x]
+set_property -dict [list CONFIG.CONNECTIONS {MC_0 {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}}] [get_bd_intf_pins /blp/axi_noc_mc_1x/S00_INI]
+set_property -dict [list CONFIG.CONNECTIONS {MC_1 {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}}] [get_bd_intf_pins /blp/axi_noc_mc_1x/S01_INI]
+set_property -dict [list CONFIG.CONNECTIONS {MC_2 {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}}] [get_bd_intf_pins /blp/axi_noc_mc_1x/S02_INI]
+set_property -dict [list CONFIG.CONNECTIONS {MC_3 {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}}] [get_bd_intf_pins /blp/axi_noc_mc_1x/S03_INI]
+set_property -dict [list CONFIG.CONNECTIONS {MC_1 {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}} CONFIG.INI_STRATEGY {load}] [get_bd_intf_pins /blp/axi_noc_mc_1x/S04_INI]
+set_property -dict [list CONFIG.CONNECTIONS {MC_2 {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}} CONFIG.INI_STRATEGY {load}] [get_bd_intf_pins /blp/axi_noc_mc_1x/S05_INI]
+set_property -dict [list CONFIG.CONNECTIONS {MC_3 {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}} CONFIG.INI_STRATEGY {load}] [get_bd_intf_pins /blp/axi_noc_mc_1x/S06_INI]
+set_property -dict [list CONFIG.CONNECTIONS {MC_0 {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}}] [get_bd_intf_pins /blp/axi_noc_mc_1x/S07_INI]
+endgroup
+
+# Turn off memory controller in NOC attached to CIPS directly and match settings in non-automated flow
+set_property name axi_noc_ic [get_bd_cells axi_noc_0]
+set_property -dict [list \
+  CONFIG.CH0_LPDDR4_0_BOARD_INTERFACE {Custom} \
+  CONFIG.CH1_LPDDR4_0_BOARD_INTERFACE {Custom} \
+  CONFIG.NUM_CLKS {9} \
+  CONFIG.NUM_MC {0} \
+  CONFIG.NUM_MI {4} \
+  CONFIG.NUM_NMI {7} \
+  CONFIG.NUM_SI {8} \
+  CONFIG.sys_clk0_BOARD_INTERFACE {Custom} \
+] [get_bd_cells axi_noc_ic]
+
+set_property -dict [list CONFIG.CATEGORY {pl} CONFIG.CONNECTIONS {M03_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M06_INI {read_bw {500} write_bw {500}} M00_INI {read_bw {500} write_bw {500}}}] [get_bd_intf_pins /blp/axi_noc_ic/S06_AXI]
+set_property -dict [list CONFIG.CONNECTIONS {M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M04_INI {read_bw {500} write_bw {500}} M00_INI {read_bw {500} write_bw {500}}}] [get_bd_intf_pins /blp/axi_noc_ic/S01_AXI]
+set_property -dict [list CONFIG.CONNECTIONS {M01_INI {read_bw {500} write_bw {500}} M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M04_INI {read_bw {500} write_bw {500}}}] [get_bd_intf_pins /blp/axi_noc_ic/S02_AXI]
+set_property -dict [list CONFIG.CONNECTIONS {M02_INI {read_bw {500} write_bw {500}} M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M04_INI {read_bw {500} write_bw {500}}}] [get_bd_intf_pins /blp/axi_noc_ic/S03_AXI]
+set_property -dict [list CONFIG.CATEGORY {ps_cci} CONFIG.CONNECTIONS {M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M03_INI {read_bw {500} write_bw {500}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M04_INI {read_bw {500} write_bw {500}}}] [get_bd_intf_pins /blp/axi_noc_ic/S04_AXI]
+set_property -dict [list CONFIG.CONNECTIONS {M03_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M06_INI {read_bw {500} write_bw {500}} M04_INI {read_bw {500} write_bw {500}} M00_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M00_INI {read_bw {500} write_bw {500}}}] [get_bd_intf_pins /blp/axi_noc_ic/S05_AXI]
+set_property -dict [list CONFIG.CATEGORY {ps_rpu} CONFIG.CONNECTIONS {M00_INI {read_bw {500} write_bw {500}}}] [get_bd_intf_pins /blp/axi_noc_ic/S06_AXI]
+set_property -dict [list CONFIG.CONNECTIONS {M03_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M06_INI {read_bw {500} write_bw {500}} M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M05_INI {read_bw {500} write_bw {500}} M00_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}}] [get_bd_intf_pins /blp/axi_noc_ic/S07_AXI]
+
+# Make the connections
+connect_bd_intf_net [get_bd_intf_pins lpddr4_clk1] [get_bd_intf_pins axi_noc_mc_1x/sys_clk0]
+connect_bd_intf_net [get_bd_intf_pins ch0_lpddr4_trip1] [get_bd_intf_pins axi_noc_mc_1x/CH0_LPDDR4_0]
+connect_bd_intf_net [get_bd_intf_pins ch1_lpddr4_trip1] [get_bd_intf_pins axi_noc_mc_1x/CH1_LPDDR4_0]
+
+# Change some of CIPs configuratons to match use case
   set_property -dict [list \
-    CONFIG.CLOCK_MODE {Custom} \
-    CONFIG.DDR_MEMORY_MODE {Custom} \
-    CONFIG.DEVICE_INTEGRITY_MODE {Custom} \
-    CONFIG.IO_CONFIG_MODE {Custom} \
-    CONFIG.PS_PL_CONNECTIVITY_MODE {Custom} \
     CONFIG.PS_PMC_CONFIG { \
-      BOOT_MODE {Custom} \
-      CLOCK_MODE {Custom} \
-      DDR_MEMORY_MODE {Custom} \
-      DESIGN_MODE {1} \
-      DEVICE_INTEGRITY_MODE {Custom} \
-      IO_CONFIG_MODE {Custom} \
-      PMC_CRP_LSBUS_REF_CTRL_FREQMHZ {100} \
       PMC_CRP_PL0_REF_CTRL_FREQMHZ {100} \
       PMC_CRP_PL1_REF_CTRL_FREQMHZ {33.3333333} \
-      PMC_CRP_PL2_REF_CTRL_FREQMHZ {250} \
-      PMC_I2CPMC_PERIPHERAL {{ENABLE 1} {IO {PMC_MIO 18 .. 19}}} \
-      PMC_MIO12 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 4mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PMC_MIO13 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PMC_MIO26 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PMC_MIO27 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PMC_MIO28 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PMC_MIO29 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PMC_MIO30 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PMC_MIO31 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PMC_MIO39 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PMC_MIO50 {{AUX_IO 0} {DIRECTION in} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PMC_MIO_EN_FOR_PL_PCIE {1} \
-      PMC_OSPI_PERIPHERAL {{ENABLE 1} {IO {PMC_MIO 0 .. 11}} {MODE Single}} \
-      PMC_USE_PMC_NOC_AXI0 {1} \
-      PS_BOARD_INTERFACE {Custom} \
-      PS_CRF_ACPU_CTRL_FREQMHZ {1066} \
-      PS_CRF_DBG_FPD_CTRL_FREQMHZ {300} \
-      PS_CRF_FPD_LSBUS_CTRL_FREQMHZ {100} \
-      PS_CRF_FPD_TOP_SWITCH_CTRL_FREQMHZ {600} \
-      PS_CRL_CPM_TOPSW_REF_CTRL_FREQMHZ {600} \
-      PS_CRL_CPU_R5_CTRL_FREQMHZ {450} \
-      PS_CRL_DBG_LPD_CTRL_FREQMHZ {300} \
-      PS_CRL_DBG_TSTMP_CTRL_FREQMHZ {300} \
-      PS_CRL_LPD_LSBUS_CTRL_FREQMHZ {100} \
-      PS_CRL_LPD_TOP_SWITCH_CTRL_FREQMHZ {450} \
-      PS_CRL_PSM_REF_CTRL_FREQMHZ {300} \
-      PS_GEN_IPI0_ENABLE {1} \
-      PS_GEN_IPI1_ENABLE {1} \
-      PS_GEN_IPI2_ENABLE {1} \
-      PS_GEN_IPI3_ENABLE {1} \
-      PS_GEN_IPI3_MASTER {R5_0} \
-      PS_GEN_IPI4_ENABLE {1} \
-      PS_GEN_IPI4_MASTER {R5_0} \
-      PS_GEN_IPI5_ENABLE {1} \
-      PS_GEN_IPI5_MASTER {R5_1} \
-      PS_GEN_IPI6_ENABLE {1} \
-      PS_GEN_IPI6_MASTER {R5_1} \
-      PS_I2CSYSMON_PERIPHERAL {{ENABLE 0} {IO {PMC_MIO 35 .. 36}}} \
       PS_IRQ_USAGE \
       { \
         {CH0 1} {CH1 1} {CH2 1} {CH3 1} {CH4 1} {CH5 0} {CH6 0} {CH7 0} \
         {CH8 1} {CH9 1} {CH10 1} {CH11 1} {CH12 1} {CH13 0} {CH14 0} {CH15 0} \
       } \
-      PS_MIO0 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PS_MIO1 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PS_MIO2 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PS_MIO24 {{AUX_IO 0} {DIRECTION in} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE AUXIO}} \
-      PS_MIO25 {{AUX_IO 0} {DIRECTION in} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE AUXIO}} \
-      PS_MIO4 {{AUX_IO 0} {DIRECTION out} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PS_MIO6 {{AUX_IO 0} {DIRECTION in} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PS_MIO8 {{AUX_IO 0} {DIRECTION inout} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PS_MIO9 {{AUX_IO 0} {DIRECTION inout} {DRIVE_STRENGTH 8mA} {OUTPUT_DATA default} {PULL pullup} {SCHMITT 0} {SLEW slow} {USAGE GPIO}} \
-      PS_NUM_FABRIC_RESETS {1} \
-      PS_PCIE_EP_RESET1_IO {PMC_MIO 24} \
-      PS_PCIE_EP_RESET2_IO {PMC_MIO 25} \
-      PS_PCIE_RESET {ENABLE 1} \
-      PS_PL_CONNECTIVITY_MODE {Custom} \
-      PS_SPI0 {{GRP_SS0_ENABLE 1} {GRP_SS0_IO {PMC_MIO 41}} {GRP_SS1_ENABLE 0} {GRP_SS1_IO {PMC_MIO 14}} {GRP_SS2_ENABLE 0} {GRP_SS2_IO {PMC_MIO 13}} {PERIPHERAL_ENABLE 1} {PERIPHERAL_IO {PMC_MIO 38 .. 43}}} \
-      PS_TTC0_PERIPHERAL_ENABLE {1} \
-      PS_TTC1_PERIPHERAL_ENABLE {1} \
-      PS_TTC2_PERIPHERAL_ENABLE {1} \
-      PS_TTC3_PERIPHERAL_ENABLE {1} \
-      PS_UART0_PERIPHERAL {{ENABLE 1} {IO {PMC_MIO 16 .. 17}}} \
-      PS_UART1_PERIPHERAL {{ENABLE 1} {IO {PMC_MIO 20 .. 21}}} \
       PS_USE_FPD_CCI_NOC {1} \
       PS_USE_FPD_CCI_NOC0 {1} \
       PS_USE_M_AXI_FPD {1} \
       PS_USE_M_AXI_LPD {1} \
       PS_USE_NOC_LPD_AXI0 {1} \
-      PS_USE_PMCPL_CLK0 {1} \
-      PS_USE_PMCPL_CLK1 {1} \
-      PS_USE_PMCPL_CLK2 {0} \
       SMON_ALARMS {Set_Alarms_On} \
       SMON_ENABLE_TEMP_AVERAGING {0} \
       SMON_INTERFACE_TO_USE {I2C} \
@@ -1749,21 +1738,10 @@ proc create_hier_cell_blp { parentCell nameHier} {
       SMON_MEAS25 {{ALARM_ENABLE 1} {ALARM_LOWER 0.00} {ALARM_UPPER 1.00} {AVERAGE_EN 0} {ENABLE 1} {MODE {1 V unipolar}} {NAME VP_VN} {SUPPLY_NUM 6}} \
       SMON_MEAS6 {{ALARM_ENABLE 1} {ALARM_LOWER 0.00} {ALARM_UPPER 2.00} {AVERAGE_EN 0} {ENABLE 1} {MODE {2 V unipolar}} {NAME VCCAUX} {SUPPLY_NUM 0}} \
       SMON_MEAS7 {{ALARM_ENABLE 1} {ALARM_LOWER 0.00} {ALARM_UPPER 2.00} {AVERAGE_EN 0} {ENABLE 1} {MODE {2 V unipolar}} {NAME VCCAUX_PMC} {SUPPLY_NUM 1}} \
-      SMON_PMBUS_ADDRESS {0x18} \
       SMON_TEMP_AVERAGING_SAMPLES {0} \
       SMON_VAUX_CH0 {{ALARM_ENABLE 0} {ALARM_LOWER 0} {ALARM_UPPER 1} {AVERAGE_EN 0} {ENABLE 1} {IO_N LPD_MIO25_502} {IO_P LPD_MIO24_502} {MODE {1 V unipolar}} {NAME VAUX_CH0} {SUPPLY_NUM 10}} \
     } \
   ] $cips
-
-  # Create instance: axi_noc_ic, and set properties
-  set axi_noc_ic [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_noc axi_noc_ic ]
-  set_property -dict [list \
-    CONFIG.NUM_CLKS {9} \
-    CONFIG.NUM_MI {4} \
-    CONFIG.NUM_NMI {7} \
-    CONFIG.NUM_NSI {0} \
-    CONFIG.NUM_SI {8} \
-  ] $axi_noc_ic
 
 
   set_property -dict [ list \
@@ -1795,7 +1773,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
    CONFIG.REMAPS {} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {pl} \
- ] [get_bd_intf_pins /blp/axi_noc_ic/S00_AXI]
+ ] [get_bd_intf_pins /blp/axi_noc_ic/S06_AXI]
 
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {128} \
@@ -1803,7 +1781,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
    CONFIG.DEST_IDS {M01_AXI:0x1c0:M02_AXI:0x240} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {ps_cci} \
- ] [get_bd_intf_pins /blp/axi_noc_ic/S01_AXI]
+ ] [get_bd_intf_pins /blp/axi_noc_ic/S00_AXI]
 
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {128} \
@@ -1811,7 +1789,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
    CONFIG.DEST_IDS {M01_AXI:0x1c0:M02_AXI:0x240} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {ps_cci} \
- ] [get_bd_intf_pins /blp/axi_noc_ic/S02_AXI]
+ ] [get_bd_intf_pins /blp/axi_noc_ic/S01_AXI]
 
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {128} \
@@ -1819,7 +1797,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
    CONFIG.DEST_IDS {M01_AXI:0x1c0:M02_AXI:0x240} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {ps_cci} \
- ] [get_bd_intf_pins /blp/axi_noc_ic/S03_AXI]
+ ] [get_bd_intf_pins /blp/axi_noc_ic/S02_AXI]
 
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {128} \
@@ -1827,7 +1805,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
    CONFIG.DEST_IDS {M01_AXI:0x1c0:M02_AXI:0x240} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {ps_cci} \
- ] [get_bd_intf_pins /blp/axi_noc_ic/S04_AXI]
+ ] [get_bd_intf_pins /blp/axi_noc_ic/S03_AXI]
 
   set_property -dict [ list \
    CONFIG.DATA_WIDTH {128} \
@@ -1843,7 +1821,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
    CONFIG.DEST_IDS {} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {ps_rpu} \
- ] [get_bd_intf_pins /blp/axi_noc_ic/S06_AXI]
+ ] [get_bd_intf_pins /blp/axi_noc_ic/S04_AXI]
 
   set_property -dict [ list \
    CONFIG.CONNECTIONS {M03_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M06_INI {read_bw {500} write_bw {500}} M01_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M02_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}} M05_INI {read_bw {500} write_bw {500}} M00_AXI {read_bw {500} write_bw {500} read_avg_burst {4} write_avg_burst {4}}} \
@@ -1888,191 +1866,6 @@ proc create_hier_cell_blp { parentCell nameHier} {
   set_property -dict [ list \
    CONFIG.ASSOCIATED_BUSIF {M00_AXI:S00_AXI:S07_AXI} \
  ] [get_bd_pins /blp/axi_noc_ic/aclk8]
-
-  # Create instance: axi_noc_mc_1x, and set properties
-  set axi_noc_mc_1x [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_noc axi_noc_mc_1x ]
-  set_property -dict [list \
-    CONFIG.CONTROLLERTYPE {LPDDR4_SDRAM} \
-    CONFIG.MC0_CONFIG_NUM {config26} \
-    CONFIG.MC0_FLIPPED_PINOUT {true} \
-    CONFIG.MC1_CONFIG_NUM {config26} \
-    CONFIG.MC2_CONFIG_NUM {config26} \
-    CONFIG.MC3_CONFIG_NUM {config26} \
-    CONFIG.MC_ADDR_WIDTH {6} \
-    CONFIG.MC_BURST_LENGTH {16} \
-    CONFIG.MC_CASLATENCY {32} \
-    CONFIG.MC_CH0_LP4_CHA_ENABLE {true} \
-    CONFIG.MC_CH0_LP4_CHB_ENABLE {true} \
-    CONFIG.MC_CH1_LP4_CHA_ENABLE {true} \
-    CONFIG.MC_CH1_LP4_CHB_ENABLE {true} \
-    CONFIG.MC_CHANNEL_INTERLEAVING {true} \
-    CONFIG.MC_CHAN_REGION1 {DDR_CH1} \
-    CONFIG.MC_CH_INTERLEAVING_SIZE {256_Bytes} \
-    CONFIG.MC_CKE_WIDTH {0} \
-    CONFIG.MC_CK_WIDTH {0} \
-    CONFIG.MC_COMPONENT_DENSITY {32Gb} \
-    CONFIG.MC_COMPONENT_WIDTH {x32} \
-    CONFIG.MC_CONFIG_NUM {config26} \
-    CONFIG.MC_DATAWIDTH {32} \
-    CONFIG.MC_DM_WIDTH {4} \
-    CONFIG.MC_DQS_WIDTH {4} \
-    CONFIG.MC_DQ_WIDTH {32} \
-    CONFIG.MC_ECC_SCRUB_SIZE {8192} \
-    CONFIG.MC_EN_INTR_RESP {TRUE} \
-    CONFIG.MC_F1_CASLATENCY {32} \
-    CONFIG.MC_F1_CASWRITELATENCY {16} \
-    CONFIG.MC_F1_LPDDR4_MR13 {0x00C0} \
-    CONFIG.MC_F1_TCCD_L {0} \
-    CONFIG.MC_F1_TCCD_L_MIN {0} \
-    CONFIG.MC_F1_TFAW {40000} \
-    CONFIG.MC_F1_TFAWMIN {40000} \
-    CONFIG.MC_F1_TMOD {0} \
-    CONFIG.MC_F1_TMOD_MIN {0} \
-    CONFIG.MC_F1_TMRD {14000} \
-    CONFIG.MC_F1_TMRDMIN {14000} \
-    CONFIG.MC_F1_TMRW {10000} \
-    CONFIG.MC_F1_TMRWMIN {10000} \
-    CONFIG.MC_F1_TRAS {42000} \
-    CONFIG.MC_F1_TRASMIN {42000} \
-    CONFIG.MC_F1_TRCD {18000} \
-    CONFIG.MC_F1_TRCDMIN {18000} \
-    CONFIG.MC_F1_TRPAB {21000} \
-    CONFIG.MC_F1_TRPABMIN {21000} \
-    CONFIG.MC_F1_TRPPB {18000} \
-    CONFIG.MC_F1_TRPPBMIN {18000} \
-    CONFIG.MC_F1_TRRD {10000} \
-    CONFIG.MC_F1_TRRDMIN {10000} \
-    CONFIG.MC_F1_TRRD_L {0} \
-    CONFIG.MC_F1_TRRD_L_MIN {0} \
-    CONFIG.MC_F1_TRRD_S {0} \
-    CONFIG.MC_F1_TRRD_S_MIN {0} \
-    CONFIG.MC_F1_TWR {18000} \
-    CONFIG.MC_F1_TWRMIN {18000} \
-    CONFIG.MC_F1_TWTR {10000} \
-    CONFIG.MC_F1_TWTRMIN {10000} \
-    CONFIG.MC_F1_TWTR_L {0} \
-    CONFIG.MC_F1_TWTR_L_MIN {0} \
-    CONFIG.MC_F1_TWTR_S {0} \
-    CONFIG.MC_F1_TWTR_S_MIN {0} \
-    CONFIG.MC_F1_TZQLAT {30000} \
-    CONFIG.MC_F1_TZQLATMIN {30000} \
-    CONFIG.MC_FREQ_SEL {MEMORY_CLK_FROM_SYS_CLK} \
-    CONFIG.MC_IP_TIMEPERIOD0_FOR_OP {5000} \
-    CONFIG.MC_LP4_CA_A_WIDTH {6} \
-    CONFIG.MC_LP4_CA_B_WIDTH {6} \
-    CONFIG.MC_LP4_CKE_A_WIDTH {1} \
-    CONFIG.MC_LP4_CKE_B_WIDTH {1} \
-    CONFIG.MC_LP4_CKT_A_WIDTH {1} \
-    CONFIG.MC_LP4_CKT_B_WIDTH {1} \
-    CONFIG.MC_LP4_CS_A_WIDTH {1} \
-    CONFIG.MC_LP4_CS_B_WIDTH {1} \
-    CONFIG.MC_LP4_DMI_A_WIDTH {2} \
-    CONFIG.MC_LP4_DMI_B_WIDTH {2} \
-    CONFIG.MC_LP4_DQS_A_WIDTH {2} \
-    CONFIG.MC_LP4_DQS_B_WIDTH {2} \
-    CONFIG.MC_LP4_DQ_A_WIDTH {16} \
-    CONFIG.MC_LP4_DQ_B_WIDTH {16} \
-    CONFIG.MC_LP4_PIN_EFFICIENT {false} \
-    CONFIG.MC_LP4_RESETN_WIDTH {1} \
-    CONFIG.MC_MEMORY_SPEEDGRADE {LPDDR4-3733} \
-    CONFIG.MC_NO_CHANNELS {Dual} \
-    CONFIG.MC_ODTLon {6} \
-    CONFIG.MC_ODT_WIDTH {0} \
-    CONFIG.MC_OP_TIMEPERIOD0 {541} \
-    CONFIG.MC_OP_TIMEPERIOD1 {541} \
-    CONFIG.MC_PER_RD_INTVL {0} \
-    CONFIG.MC_PRE_DEF_ADDR_MAP_SEL {ROW_BANK_COLUMN} \
-    CONFIG.MC_RANK {1} \
-    CONFIG.MC_ROWADDRESSWIDTH {17} \
-    CONFIG.MC_TCCD {8} \
-    CONFIG.MC_TCCD_L {0} \
-    CONFIG.MC_TCCD_L_MIN {0} \
-    CONFIG.MC_TCKE {14} \
-    CONFIG.MC_TCKEMIN {14} \
-    CONFIG.MC_TDQS2DQ_MAX {800} \
-    CONFIG.MC_TDQS2DQ_MIN {200} \
-    CONFIG.MC_TDQSCK_MAX {3500} \
-    CONFIG.MC_TFAW {40000} \
-    CONFIG.MC_TFAWMIN {40000} \
-    CONFIG.MC_TMOD {0} \
-    CONFIG.MC_TMOD_MIN {0} \
-    CONFIG.MC_TMRD {14000} \
-    CONFIG.MC_TMRDMIN {14000} \
-    CONFIG.MC_TMRD_div4 {10} \
-    CONFIG.MC_TMRD_nCK {26} \
-    CONFIG.MC_TMRW {10000} \
-    CONFIG.MC_TMRWMIN {10000} \
-    CONFIG.MC_TMRW_div4 {10} \
-    CONFIG.MC_TMRW_nCK {19} \
-    CONFIG.MC_TODTon_MIN {3} \
-    CONFIG.MC_TOSCO {40000} \
-    CONFIG.MC_TOSCOMIN {40000} \
-    CONFIG.MC_TOSCO_nCK {74} \
-    CONFIG.MC_TPBR2PBR {90000} \
-    CONFIG.MC_TPBR2PBRMIN {90000} \
-    CONFIG.MC_TRAS {42000} \
-    CONFIG.MC_TRASMIN {42000} \
-    CONFIG.MC_TRAS_nCK {78} \
-    CONFIG.MC_TRC {63000} \
-    CONFIG.MC_TRCD {18000} \
-    CONFIG.MC_TRCDMIN {18000} \
-    CONFIG.MC_TRCD_nCK {34} \
-    CONFIG.MC_TRCMIN {0} \
-    CONFIG.MC_TREFI {3906000} \
-    CONFIG.MC_TREFIPB {488000} \
-    CONFIG.MC_TRFC {0} \
-    CONFIG.MC_TRFCAB {280000} \
-    CONFIG.MC_TRFCABMIN {280000} \
-    CONFIG.MC_TRFCMIN {0} \
-    CONFIG.MC_TRFCPB {140000} \
-    CONFIG.MC_TRFCPBMIN {140000} \
-    CONFIG.MC_TRP {0} \
-    CONFIG.MC_TRPAB {21000} \
-    CONFIG.MC_TRPABMIN {21000} \
-    CONFIG.MC_TRPAB_nCK {39} \
-    CONFIG.MC_TRPMIN {0} \
-    CONFIG.MC_TRPPB {18000} \
-    CONFIG.MC_TRPPBMIN {18000} \
-    CONFIG.MC_TRPPB_nCK {34} \
-    CONFIG.MC_TRPRE {1.8} \
-    CONFIG.MC_TRRD {10000} \
-    CONFIG.MC_TRRDMIN {10000} \
-    CONFIG.MC_TRRD_L {0} \
-    CONFIG.MC_TRRD_L_MIN {0} \
-    CONFIG.MC_TRRD_S {0} \
-    CONFIG.MC_TRRD_S_MIN {0} \
-    CONFIG.MC_TRRD_nCK {19} \
-    CONFIG.MC_TWPRE {1.8} \
-    CONFIG.MC_TWPST {0.4} \
-    CONFIG.MC_TWR {18000} \
-    CONFIG.MC_TWRMIN {18000} \
-    CONFIG.MC_TWR_nCK {34} \
-    CONFIG.MC_TWTR {10000} \
-    CONFIG.MC_TWTRMIN {10000} \
-    CONFIG.MC_TWTR_L {0} \
-    CONFIG.MC_TWTR_S {0} \
-    CONFIG.MC_TWTR_S_MIN {0} \
-    CONFIG.MC_TWTR_nCK {19} \
-    CONFIG.MC_TXP {14} \
-    CONFIG.MC_TXPMIN {14} \
-    CONFIG.MC_TXPR {0} \
-    CONFIG.MC_TZQCAL {1000000} \
-    CONFIG.MC_TZQCAL_div4 {463} \
-    CONFIG.MC_TZQCS_ITVL {0} \
-    CONFIG.MC_TZQLAT {30000} \
-    CONFIG.MC_TZQLATMIN {30000} \
-    CONFIG.MC_TZQLAT_div4 {14} \
-    CONFIG.MC_TZQLAT_nCK {56} \
-    CONFIG.MC_TZQ_START_ITVL {1000000000} \
-    CONFIG.MC_USER_DEFINED_ADDRESS_MAP {17RA-3BA-10CA} \
-    CONFIG.MC_XPLL_CLKOUT1_PERIOD {1082} \
-    CONFIG.NUM_CLKS {0} \
-    CONFIG.NUM_MC {1} \
-    CONFIG.NUM_MCP {4} \
-    CONFIG.NUM_MI {0} \
-    CONFIG.NUM_NSI {8} \
-    CONFIG.NUM_SI {0} \
-  ] $axi_noc_mc_1x
 
 
   set_property -dict [ list \
@@ -2223,20 +2016,12 @@ proc create_hier_cell_blp { parentCell nameHier} {
   connect_bd_intf_net -intf_net axi_noc_ic_M03_INI [get_bd_intf_pins axi_noc_ic/M03_INI] [get_bd_intf_pins axi_noc_mc_1x/S03_INI]
   connect_bd_intf_net -intf_net axi_noc_ic_M04_INI [get_bd_intf_pins axi_noc_ic/M04_INI] [get_bd_intf_pins ULP_M_INI_AIE_00]
   connect_bd_intf_net -intf_net axi_noc_ic_M05_INI [get_bd_intf_pins axi_noc_mc_1x/S06_INI] [get_bd_intf_pins axi_noc_ic/M05_INI]
-  connect_bd_intf_net -intf_net axi_noc_mc_1x_CH0_LPDDR4_0 [get_bd_intf_pins axi_noc_mc_1x/CH0_LPDDR4_0] [get_bd_intf_pins CH0_LPDDR4_0]
-  connect_bd_intf_net -intf_net axi_noc_mc_1x_CH1_LPDDR4_0 [get_bd_intf_pins axi_noc_mc_1x/CH1_LPDDR4_0] [get_bd_intf_pins CH1_LPDDR4_0]
-  connect_bd_intf_net -intf_net cips_FPD_CCI_NOC_0 [get_bd_intf_pins axi_noc_ic/S01_AXI] [get_bd_intf_pins cips/FPD_CCI_NOC_0]
-  connect_bd_intf_net -intf_net cips_FPD_CCI_NOC_1 [get_bd_intf_pins axi_noc_ic/S02_AXI] [get_bd_intf_pins cips/FPD_CCI_NOC_1]
-  connect_bd_intf_net -intf_net cips_FPD_CCI_NOC_2 [get_bd_intf_pins axi_noc_ic/S03_AXI] [get_bd_intf_pins cips/FPD_CCI_NOC_2]
-  connect_bd_intf_net -intf_net cips_FPD_CCI_NOC_3 [get_bd_intf_pins axi_noc_ic/S04_AXI] [get_bd_intf_pins cips/FPD_CCI_NOC_3]
-  connect_bd_intf_net -intf_net cips_LPD_AXI_NOC_0 [get_bd_intf_pins axi_noc_ic/S06_AXI] [get_bd_intf_pins cips/LPD_AXI_NOC_0]
   connect_bd_intf_net -intf_net cips_M_AXI_FPD [get_bd_intf_pins blp_logic/s_axi_apu] [get_bd_intf_pins cips/M_AXI_FPD]
   connect_bd_intf_net -intf_net cips_M_AXI_LPD [get_bd_intf_pins blp_logic/s_axi_rpu] [get_bd_intf_pins cips/M_AXI_LPD]
-  connect_bd_intf_net -intf_net cips_PMC_NOC_AXI_0 [get_bd_intf_pins axi_noc_ic/S05_AXI] [get_bd_intf_pins cips/PMC_NOC_AXI_0]
   connect_bd_intf_net -intf_net dfx_decoupling_ULP_M_AXI_CTRL_USER_00 [get_bd_intf_pins ULP_M_AXI_CTRL_USER_00] [get_bd_intf_pins dfx_decoupling/ULP_M_AXI_CTRL_USER_00]
   connect_bd_intf_net -intf_net pcie_refclk [get_bd_intf_pins pcie_refclk] [get_bd_intf_pins qdma_0_support/pcie_refclk]
   connect_bd_intf_net -intf_net pcie_cfg_ext [get_bd_intf_pins qdma_0_support/pcie_cfg_ext] [get_bd_intf_pins blp_logic/s_pcie4_cfg_ext]
-  connect_bd_intf_net -intf_net qdma_0_M_AXI [get_bd_intf_pins qdma_0/M_AXI] [get_bd_intf_pins axi_noc_ic/S00_AXI]
+  connect_bd_intf_net -intf_net qdma_0_M_AXI [get_bd_intf_pins qdma_0/M_AXI] [get_bd_intf_pins axi_noc_ic/S06_AXI]
   connect_bd_intf_net -intf_net qdma_0_M_AXI_BRIDGE [get_bd_intf_pins qdma_0/M_AXI_BRIDGE] [get_bd_intf_pins axi_noc_ic/S07_AXI]
   connect_bd_intf_net -intf_net qdma_0_pcie_cfg_control_if [get_bd_intf_pins qdma_0/pcie_cfg_control_if] [get_bd_intf_pins qdma_0_support/pcie_cfg_control]
   connect_bd_intf_net -intf_net qdma_0_pcie_cfg_external_msix_without_msi_if [get_bd_intf_pins qdma_0/pcie_cfg_external_msix_without_msi_if] [get_bd_intf_pins qdma_0_support/pcie_cfg_external_msix_without_msi]
@@ -2255,7 +2040,6 @@ proc create_hier_cell_blp { parentCell nameHier} {
   connect_bd_intf_net -intf_net qdma_0_support_pcie_transmit_fc [get_bd_intf_pins qdma_0/pcie_transmit_fc_if] [get_bd_intf_pins qdma_0_support/pcie_transmit_fc]
   connect_bd_intf_net -intf_net s_axi_mgmt_ctrl_1 [get_bd_intf_pins blp_logic/s_axi_mgmt_ctrl] [get_bd_intf_pins axi_noc_ic/M02_AXI]
   connect_bd_intf_net -intf_net s_axi_user_ctrl_1 [get_bd_intf_pins blp_logic/s_axi_user_ctrl] [get_bd_intf_pins axi_noc_ic/M01_AXI]
-  connect_bd_intf_net -intf_net sys_clk0_0 [get_bd_intf_pins sys_clk_0] [get_bd_intf_pins axi_noc_mc_1x/sys_clk0]
   connect_bd_intf_net -intf_net ulp_MC_M00_INI [get_bd_intf_pins ULP_S_INI_MC_00] [get_bd_intf_pins axi_noc_mc_1x/S04_INI]
   connect_bd_intf_net -intf_net ulp_MC_M01_INI [get_bd_intf_pins ULP_S_INI_MC_01] [get_bd_intf_pins axi_noc_mc_1x/S05_INI]
   connect_bd_intf_net -intf_net ulp_MC_M02_INI [get_bd_intf_pins ULP_S_INI_MC_02] [get_bd_intf_pins axi_noc_mc_1x/S07_INI]
@@ -2284,11 +2068,6 @@ proc create_hier_cell_blp { parentCell nameHier} {
   connect_bd_net -net blp_logic_irq_vec [get_bd_pins blp_logic/irq_vec] [get_bd_pins qdma_0/usr_irq_in_vec]
   connect_bd_net -net blp_logic_irq_vld [get_bd_pins blp_logic/irq_vld] [get_bd_pins qdma_0/usr_irq_in_vld]
   connect_bd_net -net blp_m_dbg_hub_fw_00_1 [get_bd_pins dfx_decoupling/blp_m_dbg_hub_fw_00] [get_bd_pins cips/pl_ps_irq4]
-  connect_bd_net -net cips_fpd_cci_noc_axi1_clk [get_bd_pins cips/fpd_cci_noc_axi0_clk] [get_bd_pins axi_noc_ic/aclk1]
-  connect_bd_net -net cips_fpd_cci_noc_axi2_clk [get_bd_pins cips/fpd_cci_noc_axi1_clk] [get_bd_pins axi_noc_ic/aclk2]
-  connect_bd_net -net cips_fpd_cci_noc_axi3_clk [get_bd_pins cips/fpd_cci_noc_axi2_clk] [get_bd_pins axi_noc_ic/aclk3]
-  connect_bd_net -net cips_fpd_cci_noc_axi4_clk [get_bd_pins cips/fpd_cci_noc_axi3_clk] [get_bd_pins axi_noc_ic/aclk4]
-  connect_bd_net -net cips_lpd_axi_noc_axi6_clk [get_bd_pins cips/lpd_axi_noc_clk] [get_bd_pins axi_noc_ic/aclk6]
   connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins axi_noc_ic/aclk7]
   connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins ulp_m_aclk_ctrl_00]
   connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins blp_logic/clk_pl_axi]
@@ -2298,7 +2077,6 @@ proc create_hier_cell_blp { parentCell nameHier} {
   connect_bd_net -net cips_pl0_resetn [get_bd_pins cips/pl0_resetn] [get_bd_pins blp_logic/resetn_pl_axi]
   connect_bd_net -net cips_pl1_ref_clk [get_bd_pins cips/pl1_ref_clk] [get_bd_pins blp_logic/clk_pl_ref]
   connect_bd_net -net cips_pl_pcie_resetn [get_bd_pins cips/pl_pcie0_resetn] [get_bd_pins qdma_0_support/sys_reset]
-  connect_bd_net -net cips_pmc_axi_noc_axi5_clk [get_bd_pins cips/pmc_axi_noc_axi0_clk] [get_bd_pins axi_noc_ic/aclk5]
   connect_bd_net -net const_vcc_dout [get_bd_pins const_vcc/dout] [get_bd_pins qdma_0/tm_dsc_sts_rdy]
   connect_bd_net -net const_vcc_dout [get_bd_pins const_vcc/dout] [get_bd_pins qdma_0/qsts_out_rdy]
   connect_bd_net -net dfx_decoupling_blp_m_ext_tog_ctrl_kernel_00_enable [get_bd_pins dfx_decoupling/blp_m_ext_tog_ctrl_kernel_00_enable] [get_bd_pins blp_logic/ext_tog_ctrl_kernel_00_enable]
@@ -2327,7 +2105,7 @@ proc create_hier_cell_blp { parentCell nameHier} {
   connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins ulp_m_aclk_pcie_00]
   connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins blp_logic/clk_pl_pcie]
   connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins dfx_decoupling/clk_pl_pcie]
-  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins axi_noc_ic/aclk0]
+  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins axi_noc_ic/aclk6]
   connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins qdma_0/user_clk_sd]
   connect_bd_net -net resetn_pl_pcie_pr_net [get_bd_pins blp_logic/resetn_pl_pcie_pr] [get_bd_pins dfx_decoupling/blp_s_aresetn_pcie_reset_00]
   connect_bd_net -net resetn_pr_net [get_bd_pins blp_logic/resetn_pr] [get_bd_pins dfx_decoupling/blp_s_aresetn_pr_reset_00]
@@ -2381,8 +2159,6 @@ proc create_root_design { parentCell} {
 
 
   # Create interface ports
-  set CH0_LPDDR4_0_0 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:lpddr4_rtl:1.0 CH0_LPDDR4_0_0 ]
-  set CH1_LPDDR4_0_0 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:lpddr4_rtl:1.0 CH1_LPDDR4_0_0 ]
 
   set pcie_refclk [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 -portmaps { \
    CLK_N { physical_name pcie_refclk_clk_n direction I } \
@@ -2404,11 +2180,6 @@ proc create_root_design { parentCell} {
   set_property -dict [ list \
    CONFIG.CAN_DEBUG {false} \
    ] $gt_pciea0
-
-  set sys_clk_0_0 [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 sys_clk_0_0 ]
-  set_property -dict [ list \
-   CONFIG.FREQ_HZ {200321000} \
-   ] $sys_clk_0_0
 
   # Create ports
 
@@ -2443,11 +2214,8 @@ proc create_root_design { parentCell} {
   connect_bd_intf_net -intf_net blp_ULP_S_INI_MC_01 [get_bd_intf_pins ulp/BLP_M_M01_INI_0] [get_bd_intf_pins blp/ULP_S_INI_MC_01]
   connect_bd_intf_net -intf_net blp_ULP_S_INI_MC_02 [get_bd_intf_pins ulp/BLP_M_M02_INI_0] [get_bd_intf_pins blp/ULP_S_INI_MC_02]
 
-  connect_bd_intf_net -intf_net blp_ch0_lpddr4 [get_bd_intf_ports CH0_LPDDR4_0_0] [get_bd_intf_pins blp/CH0_LPDDR4_0]
-  connect_bd_intf_net -intf_net blp_ch1_lpddr4 [get_bd_intf_ports CH1_LPDDR4_0_0] [get_bd_intf_pins blp/CH1_LPDDR4_0]
   connect_bd_intf_net -intf_net blp_gt_pciea0 [get_bd_intf_ports gt_pciea0] [get_bd_intf_pins blp/gt_pciea0]
   connect_bd_intf_net -intf_net pcie_refclk_1 [get_bd_intf_ports pcie_refclk] [get_bd_intf_pins blp/pcie_refclk]
-  connect_bd_intf_net -intf_net sys_clk_0_0 [get_bd_intf_ports sys_clk_0_0] [get_bd_intf_pins blp/sys_clk_0]
 
   # Create port connections
   connect_bd_net -net blp_ulp_aclk_ext_tog_kernel_00 [get_bd_pins blp/ulp_m_aclk_ext_tog_kernel_00] [get_bd_pins ulp/blp_s_aclk_ext_tog_kernel_00]

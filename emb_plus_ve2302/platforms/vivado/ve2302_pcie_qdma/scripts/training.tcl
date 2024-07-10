@@ -385,7 +385,7 @@ proc create_root_design { parentCell } {
    CONFIG.AWUSER_WIDTH {0} \
    CONFIG.BUSER_WIDTH {0} \
    CONFIG.DATA_WIDTH {32} \
-   CONFIG.FREQ_HZ {99999001} \
+   CONFIG.FREQ_HZ {99999908} \
    CONFIG.HAS_BRESP {1} \
    CONFIG.HAS_BURST {0} \
    CONFIG.HAS_CACHE {0} \
@@ -476,7 +476,7 @@ proc create_root_design { parentCell } {
 
   # Create ports
   set blp_m_irq_kernel_00 [ create_bd_port -dir O -from 32 -to 0 -type intr blp_m_irq_kernel_00 ]
-  set blp_s_aclk_ctrl_00 [ create_bd_port -dir I -type clk -freq_hz 99999001 blp_s_aclk_ctrl_00 ]
+  set blp_s_aclk_ctrl_00 [ create_bd_port -dir I -type clk -freq_hz 99999908 blp_s_aclk_ctrl_00 ]
   set_property -dict [ list \
    CONFIG.CLK_DOMAIN {blp_cips_0_pl0_ref_clk} \
    CONFIG.PHASE {0.0} \
@@ -830,7 +830,7 @@ proc create_root_design { parentCell } {
   current_bd_instance $oldCurInst
 
   # Create PFM attributes
-  set_property PFM.CLOCK {blp_s_aclk_ctrl_00 {id "2" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_fixed" status "fixed" freq_hz "99999001"}} [get_bd_ports /blp_s_aclk_ctrl_00]
+  set_property PFM.CLOCK {blp_s_aclk_ctrl_00 {id "2" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_fixed" status "fixed" freq_hz "99999908"}} [get_bd_ports /blp_s_aclk_ctrl_00]
   set_property PFM.CLOCK {blp_s_aclk_kernel_00 {id "0" is_default "true" proc_sys_reset "/reset_controllers/reset_sync_kernel0" status "scalable" freq_hz "299996999"}} [get_bd_ports /blp_s_aclk_kernel_00]
   set_property PFM.CLOCK {blp_s_aclk_kernel_01 {id "1" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_kernel1" status "scalable" freq_hz "249997499"}} [get_bd_ports /blp_s_aclk_kernel_01]
   set_property PFM.AXI_PORT {M01_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M02_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M03_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M04_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M05_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M06_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M07_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M08_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M09_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M10_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"}} [get_bd_cells /axi_ic_user]

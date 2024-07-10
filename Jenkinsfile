@@ -62,7 +62,7 @@ def deployPlatform() {
         fi
         DSTDIR=${DEPLOY_DIR}/${board}
         mkdir -p ${DSTDIR}/${pfm}
-        rsync -avh --delete platforms/${pfm}/ ${DSTDIR}/${pfm}/
+        rsync -avhzP --delete platforms/${pfm}/ ${DSTDIR}/${pfm}/
         popd
     '''
 }
@@ -89,7 +89,7 @@ def deployPlatformFirmware() {
         chmod go+rx ${TMPDIR}
         cp -f tmp/${pfm_name}.bit ${TMPDIR}/${fw}.bit
         cp -f tmp/${pfm_name}.bit.bin ${TMPDIR}/${fw}.bin
-        rsync -avh --delete ${TMPDIR}/ ${DSTDIR}/
+        rsync -avhzP --delete ${TMPDIR}/ ${DSTDIR}/
         popd
     '''
 }
@@ -127,7 +127,7 @@ def deployOverlay() {
         chmod go+rx ${TMPDIR}
         cp -f ${example_dir}/*.xclbin ${TMPDIR}
         cp -f ${example_dir}/*.deb ${TMPDIR}
-        rsync -avh --delete ${TMPDIR}/ ${DSTDIR}/
+        rsync -avhzP --delete ${TMPDIR}/ ${DSTDIR}/
     '''
 }
 

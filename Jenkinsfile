@@ -134,7 +134,7 @@ def deployOverlay() {
 def updateDeploySuccess() {
     sh label: 'update deploy success symlink',
     script: '''
-        if [ "${BUILD_TYPE}" == "daily" ]; then
+        if [ "${BRANCH_NAME}" == "${deploy_branch}" ]; then
             if [ -d "${DEPLOY_DIR}" ]; then
                 pushd ${DEPLOY_BASE_DIR}
                 if [ -e daily_latest ]; then
@@ -150,7 +150,7 @@ def updateDeploySuccess() {
 def cleanDeployDir() {
     sh label: 'clean deploy dir',
     script: '''
-        DIR=${DEPLOY_BASE_DIR}/${tool_release}/${BUILD_TYPE}
+        DIR=${DEPLOY_BASE_DIR}
         cnt=$(find $DIR -maxdepth 1 -mindepth 1 -type d | wc -l)
         if [[ $cnt -gt $DEPLOY_MAX ]]; then
             dcnt=$(($cnt-$DEPLOY_MAX))
@@ -182,12 +182,13 @@ pipeline {
         PAEG_LSF_MEM=65536
         PAEG_LSF_QUEUE="long"
         BUILD_DATE=sh(script: 'date +"%m%d%H%M" | tr -d "\n"', returnStdout: true)
-        BUILD_TYPE="${env.BRANCH_NAME == env.deploy_branch ? 'daily' : 'pr'}"
         BUILD_ID="${env.BRANCH_NAME == env.deploy_branch ? env.BUILD_DATE : env.BRANCH_NAME}"
-        DEPLOY_BASE_DIR="/wrk/paeg_builds/build-artifacts/emb-plus-vitis-platforms"
-        DEPLOY_DIR="${DEPLOY_BASE_DIR}/${tool_release}/${BUILD_TYPE}/${BUILD_ID}"
-        DEPLOY_PFM_DIR="${DEPLOY_BASE_DIR}/${tool_release}/daily/daily_latest/platforms"
-        DEPLOY_MAX=10
+        PAEG_BASE_DIR="/wrk/paeg_builds/build-artifacts/emb-plus-vitis-platforms/${tool_release}"
+        YOCTO_BASE_DIR="/proj/yocto/rave_artifacts/${tool_release}/hw"
+        DEPLOY_BASE_DIR="${env.BRANCH_NAME == env.deploy_branch ? env.YOCTO_BASE_DIR : env.PAEG_BASE_DIR}"
+        DEPLOY_DIR="${DEPLOY_BASE_DIR}/${BUILD_ID}"
+        DEPLOY_PFM_DIR="${YOCTO_BASE_DIR}/daily_latest/platforms"
+        DEPLOY_MAX=15
     }
     options {
         // don't let the implicit checkout happen

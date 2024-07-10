@@ -56,7 +56,11 @@ def deployPlatform() {
     sh label: 'platform deploy',
     script: '''
         pushd ${work_dir}/${board}
-        DSTDIR=${DEPLOY_DIR}/platforms
+        board=$(echo ${board} | tr _ -)
+        if [ "${silicon}" != "prod" ]; then
+            board=${board}-${silicon}
+        fi
+        DSTDIR=${DEPLOY_DIR}/${board}
         mkdir -p ${DSTDIR}/${pfm}
         rsync -avh --delete platforms/${pfm}/ ${DSTDIR}/${pfm}/
         popd
@@ -75,7 +79,11 @@ def deployPlatformFirmware() {
         bootgen -arch zynqmp -process_bitstream bin -image bootgen.bif
         popd
         fw=$(echo ${pfm_name} | tr _ -)
-        DSTDIR=${DEPLOY_DIR}/firmware/${fw}
+        board=$(echo ${board} | tr _ -)
+        if [ "${silicon}" != "prod" ]; then
+            board=${board}-${silicon}
+        fi
+        DSTDIR=${DEPLOY_DIR}/${board}/${fw}
         mkdir -p ${DSTDIR}
         TMPDIR=$(mktemp -d -p .)
         chmod go+rx ${TMPDIR}
@@ -109,10 +117,11 @@ def buildOverlay() {
 def deployOverlay() {
     sh label: 'overlay deploy',
     script: '''
+        board=$(echo ${board} | tr _ -)
         if [ "${silicon}" != "prod" ]; then
-            board=${board}_${silicon}
+            board=${board}-${silicon}
         fi
-        DSTDIR=${DEPLOY_DIR}/firmware/${board}-${overlay}
+        DSTDIR=${DEPLOY_DIR}/${board}/${board}-${overlay}
         mkdir -p ${DSTDIR}
         TMPDIR=$(mktemp -d -p .)
         chmod go+rx ${TMPDIR}

@@ -26,6 +26,9 @@ def logCommitIDs() {
         git rev-parse HEAD >> ${idfile}
         popd
         cat ${idfile}
+        if [ -d "${DEPLOY_DIR}" ]; then
+            cp ${idfile} ${DEPLOY_DIR}
+        fi
     '''
 }
 
@@ -55,7 +58,6 @@ def deployPlatform() {
         pushd ${work_dir}/${board}
         DSTDIR=${DEPLOY_DIR}/platforms
         mkdir -p ${DSTDIR}/${pfm}
-        cp ${ws}/commitIDs platforms/${pfm}
         rsync -avh --delete platforms/${pfm}/ ${DSTDIR}/${pfm}/
         popd
     '''
@@ -79,7 +81,6 @@ def deployPlatformFirmware() {
         chmod go+rx ${TMPDIR}
         cp -f tmp/${pfm_name}.bit ${TMPDIR}/${fw}.bit
         cp -f tmp/${pfm_name}.bit.bin ${TMPDIR}/${fw}.bin
-        cp ${ws}/commitIDs ${TMPDIR}
         rsync -avh --delete ${TMPDIR}/ ${DSTDIR}/
         popd
     '''
@@ -117,7 +118,6 @@ def deployOverlay() {
         chmod go+rx ${TMPDIR}
         cp -f ${example_dir}/*.xclbin ${TMPDIR}
         cp -f ${example_dir}/*.deb ${TMPDIR}
-        cp ${ws}/commitIDs ${TMPDIR}
         rsync -avh --delete ${TMPDIR}/ ${DSTDIR}/
     '''
 }
@@ -218,7 +218,6 @@ pipeline {
                         url: 'https://gitenterprise.xilinx.com/PAEG/paeg-automation.git'
                     ]]
                 ])
-                logCommitIDs()
             }
         }
         stage('Create Build Directories') {
@@ -573,6 +572,9 @@ pipeline {
         }
     }
     post {
+        always {
+            logCommitIDs()
+        }
         success {
             updateDeploySuccess()
         }

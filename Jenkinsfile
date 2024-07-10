@@ -62,7 +62,7 @@ def deployPlatform() {
         fi
         DSTDIR=${DEPLOY_DIR}/${board}
         mkdir -p ${DSTDIR}/${pfm}
-        rsync -avh --delete platforms/${pfm}/ ${DSTDIR}/${pfm}/
+        rsync -avhzP --delete platforms/${pfm}/ ${DSTDIR}/${pfm}/
         popd
     '''
 }
@@ -89,7 +89,7 @@ def deployPlatformFirmware() {
         chmod go+rx ${TMPDIR}
         cp -f tmp/${pfm_name}.bit ${TMPDIR}/${fw}.bit
         cp -f tmp/${pfm_name}.bit.bin ${TMPDIR}/${fw}.bin
-        rsync -avh --delete ${TMPDIR}/ ${DSTDIR}/
+        rsync -avhzP --delete ${TMPDIR}/ ${DSTDIR}/
         popd
     '''
 }
@@ -127,7 +127,7 @@ def deployOverlay() {
         chmod go+rx ${TMPDIR}
         cp -f ${example_dir}/*.xclbin ${TMPDIR}
         cp -f ${example_dir}/*.deb ${TMPDIR}
-        rsync -avh --delete ${TMPDIR}/ ${DSTDIR}/
+        rsync -avhzP --delete ${TMPDIR}/ ${DSTDIR}/
     '''
 }
 
@@ -184,7 +184,7 @@ pipeline {
         BUILD_DATE=sh(script: 'date +"%m%d%H%M" | tr -d "\n"', returnStdout: true)
         BUILD_ID="${env.BRANCH_NAME == env.deploy_branch ? env.BUILD_DATE : env.BRANCH_NAME}"
         PAEG_BASE_DIR="/wrk/paeg_builds/build-artifacts/emb-plus-vitis-platforms/${tool_release}"
-        YOCTO_BASE_DIR="/proj/yocto/rave_artifacts/${tool_release}/hw"
+        YOCTO_BASE_DIR="xcorsync01:/proj/yocto/rave_artifacts/${tool_release}/hw"
         DEPLOY_BASE_DIR="${env.BRANCH_NAME == env.deploy_branch ? env.YOCTO_BASE_DIR : env.PAEG_BASE_DIR}"
         DEPLOY_DIR="${DEPLOY_BASE_DIR}/${BUILD_ID}"
         DEPLOY_PFM_DIR="${YOCTO_BASE_DIR}/daily_latest/platforms"

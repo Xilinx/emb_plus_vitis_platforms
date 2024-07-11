@@ -61,8 +61,10 @@ def deployPlatform() {
             board=${board}-${silicon}
         fi
         DSTDIR=${DEPLOY_DIR}/${board}
-        ssh ${HOST} mkdir -p ${DSTDIR}/${pfm}
-        rsync -avhzP --delete platforms/${pfm}/ ${HOST}:${DSTDIR}/${pfm}/
+        for host in ${HOSTS[@]} ; do
+            ssh ${host} mkdir -p ${DSTDIR}/${pfm}
+            rsync -avhzP --delete platforms/${pfm}/ ${host}:${DSTDIR}/${pfm}/
+        done
         popd
     '''
 }
@@ -88,8 +90,10 @@ def deployPlatformFirmware() {
         chmod go+rx ${TMPDIR}
         cp -f tmp/${pfm_name}.bit ${TMPDIR}/${fw}.bit
         cp -f tmp/${pfm_name}.bit.bin ${TMPDIR}/${fw}.bin
-        ssh ${HOST} mkdir -p ${DSTDIR}
-        rsync -avhzP --delete ${TMPDIR}/ ${HOST}:${DSTDIR}/
+        for host in ${HOSTS[@]} ; do
+            ssh ${host} mkdir -p ${DSTDIR}
+            rsync -avhzP --delete ${TMPDIR}/ ${host}:${DSTDIR}/
+        done
         popd
     '''
 }
@@ -126,8 +130,10 @@ def deployOverlay() {
         chmod go+rx ${TMPDIR}
         cp -f ${example_dir}/*.xclbin ${TMPDIR}
         cp -f ${example_dir}/*.deb ${TMPDIR}
-        ssh ${HOST} mkdir -p ${DSTDIR}
-        rsync -avhzP --delete ${TMPDIR}/ ${HOST}:${DSTDIR}/
+        for host in ${HOSTS[@]} ; do
+            ssh ${host} mkdir -p ${DSTDIR}
+            rsync -avhzP --delete ${TMPDIR}/ ${host}:${DSTDIR}/
+        done
     '''
 }
 
@@ -135,14 +141,18 @@ def updateDeploySuccess() {
     sh label: 'update deploy success symlink',
     script: '''
         if [ "${BRANCH_NAME}" == "${deploy_branch}" ]; then
-            if [ -d "${DEPLOY_DIR}" ]; then
-                pushd ${DEPLOY_BASE_DIR}
-                if [ -e daily_latest ]; then
-                    rm daily_latest
-                fi
-                ln -s ${BUILD_ID} daily_latest
-                popd
-            fi
+            for host in ${HOSTS[@]} ; do
+                ssh ${host} /bin/bash -x << EOF
+                    if [ -d "${DEPLOY_DIR}" ]; then
+                        pushd ${DEPLOY_BASE_DIR}
+                        if [ -e daily_latest ]; then
+                            rm daily_latest
+                        fi
+                        ln -s ${BUILD_ID} daily_latest
+                        popd
+                    fi
+EOF
+            done
         fi
     '''
 }
@@ -150,19 +160,22 @@ def updateDeploySuccess() {
 def cleanDeployDir() {
     sh label: 'clean deploy dir',
     script: '''
-        DIR=${DEPLOY_BASE_DIR}
-        cnt=$(find $DIR -maxdepth 1 -mindepth 1 -type d | wc -l)
-        if [[ $cnt -gt $DEPLOY_MAX ]]; then
-            dcnt=$(($cnt-$DEPLOY_MAX))
-            # delete old build artifacts, retain DEPLOY_MAX most recent
-            list=( $(find $DIR -maxdepth 1 -mindepth 1 -exec ls -trd1 {} + | head -n $dcnt) )
-            for i in "${list[@]}"; do
-                echo "Delete build output folder $i"
-                rm -rf $i
-            done
-        else
-            echo "Number of build output folders not greater than $DEPLOY_MAX: $cnt"
-        fi
+        for host in ${HOSTS[@]} ; do
+            ssh ${host} /bin/bash -x << EOF
+                cnt=\$(find $DEPLOY_BASE_DIR -maxdepth 1 -mindepth 1 -type d | wc -l)
+                if [[ \\$cnt -gt $DEPLOY_MAX ]]; then
+                    dcnt=\\$((\\$cnt-$DEPLOY_MAX))
+                    # delete old build artifacts, retain DEPLOY_MAX most recent
+                    list=( \\$(find $DEPLOY_BASE_DIR -maxdepth 1 -mindepth 1 -type d -exec ls -trd1 {} + | head -n \\$dcnt) )
+                    for i in "\\${list[@]}"; do
+                        echo "Delete build output folder \\$i"
+                        rm -rf \\$i
+                    done
+                else
+                    echo "Number of build output folders not greater than $DEPLOY_MAX: \\$cnt"
+                fi
+EOF
+        done
     '''
 }
 
@@ -183,7 +196,7 @@ pipeline {
         PAEG_LSF_QUEUE="long"
         BUILD_DATE=sh(script: 'date +"%m%d%H%M" | tr -d "\n"', returnStdout: true)
         BUILD_ID="${env.BRANCH_NAME == env.deploy_branch ? env.BUILD_DATE : env.BRANCH_NAME}"
-        HOST="${env.BRANCH_NAME == env.deploy_branch ? 'xcorsync01' : 'localhost'}"
+        HOSTS="${env.BRANCH_NAME == env.deploy_branch ? 'localhost xcorsync01' : 'localhost'}"
         PAEG_BASE_DIR="/wrk/paeg_builds/build-artifacts/emb-plus-vitis-platforms/${tool_release}"
         YOCTO_BASE_DIR="/proj/yocto/rave_artifacts/${tool_release}/hw"
         DEPLOY_BASE_DIR="${env.BRANCH_NAME == env.deploy_branch ? env.YOCTO_BASE_DIR : env.PAEG_BASE_DIR}"

@@ -61,8 +61,8 @@ def deployPlatform() {
             board=${board}-${silicon}
         fi
         DSTDIR=${DEPLOY_DIR}/${board}
-        mkdir -p ${DSTDIR}/${pfm}
-        rsync -avhzP --delete platforms/${pfm}/ ${DSTDIR}/${pfm}/
+        ssh ${HOST} mkdir -p ${DSTDIR}/${pfm}
+        rsync -avhzP --delete platforms/${pfm}/ ${HOST}:${DSTDIR}/${pfm}/
         popd
     '''
 }
@@ -84,12 +84,12 @@ def deployPlatformFirmware() {
             board=${board}-${silicon}
         fi
         DSTDIR=${DEPLOY_DIR}/${board}/${fw}
-        mkdir -p ${DSTDIR}
         TMPDIR=$(mktemp -d -p .)
         chmod go+rx ${TMPDIR}
         cp -f tmp/${pfm_name}.bit ${TMPDIR}/${fw}.bit
         cp -f tmp/${pfm_name}.bit.bin ${TMPDIR}/${fw}.bin
-        rsync -avhzP --delete ${TMPDIR}/ ${DSTDIR}/
+        ssh ${HOST} mkdir -p ${DSTDIR}
+        rsync -avhzP --delete ${TMPDIR}/ ${HOST}:${DSTDIR}/
         popd
     '''
 }
@@ -122,12 +122,12 @@ def deployOverlay() {
             board=${board}-${silicon}
         fi
         DSTDIR=${DEPLOY_DIR}/${board}/${board}-${overlay}
-        mkdir -p ${DSTDIR}
         TMPDIR=$(mktemp -d -p .)
         chmod go+rx ${TMPDIR}
         cp -f ${example_dir}/*.xclbin ${TMPDIR}
         cp -f ${example_dir}/*.deb ${TMPDIR}
-        rsync -avhzP --delete ${TMPDIR}/ ${DSTDIR}/
+        ssh ${HOST} mkdir -p ${DSTDIR}
+        rsync -avhzP --delete ${TMPDIR}/ ${HOST}:${DSTDIR}/
     '''
 }
 
@@ -183,8 +183,9 @@ pipeline {
         PAEG_LSF_QUEUE="long"
         BUILD_DATE=sh(script: 'date +"%m%d%H%M" | tr -d "\n"', returnStdout: true)
         BUILD_ID="${env.BRANCH_NAME == env.deploy_branch ? env.BUILD_DATE : env.BRANCH_NAME}"
+        HOST="${env.BRANCH_NAME == env.deploy_branch ? 'xcorsync01' : 'localhost'}"
         PAEG_BASE_DIR="/wrk/paeg_builds/build-artifacts/emb-plus-vitis-platforms/${tool_release}"
-        YOCTO_BASE_DIR="xcorsync01:/proj/yocto/rave_artifacts/${tool_release}/hw"
+        YOCTO_BASE_DIR="/proj/yocto/rave_artifacts/${tool_release}/hw"
         DEPLOY_BASE_DIR="${env.BRANCH_NAME == env.deploy_branch ? env.YOCTO_BASE_DIR : env.PAEG_BASE_DIR}"
         DEPLOY_DIR="${DEPLOY_BASE_DIR}/${BUILD_ID}"
         DEPLOY_PFM_DIR="${YOCTO_BASE_DIR}/daily_latest/platforms"

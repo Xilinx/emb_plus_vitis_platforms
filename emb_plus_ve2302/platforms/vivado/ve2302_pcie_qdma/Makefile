@@ -16,9 +16,6 @@ META_PY = $(VIV_SCRIPTS_DIR)/partition_metadata_gen_script.py
 
 VIV_TIMING_ERROR = "CRITICAL WARNING: \[Timing 38-282\] The design failed to meet the timing requirements"
 
-UUID_ES1 = 00000000000000000000000009203482
-UUID_PROD = 000000000000000000000000f19f5eac
-
 ifeq ($(SILICON), es1)
   UUID = $(UUID_ES1)
   VIV_DESIGN = ve2302_es1_pcie_qdma
@@ -53,9 +50,9 @@ all: xsa
 xsa: $(VIV_XSA)
 
 $(VIV_XSA): $(VIV_SRC) $(VIV_CONFIG)
-	$(VIVADO) -mode batch -notrace -source $(VIV_SRC) -tclargs -jobs $(JOBS) -silicon $(SILICON) -uuid $(UUID)
+	$(VIVADO) -mode batch -notrace -source $(VIV_SRC) -tclargs -jobs $(JOBS) -silicon $(SILICON)
 	@grep $(VIV_TIMING_ERROR) vivado.log; if [ $$? = 0 ]; then exit 1; fi
-	$(PYTHON) $(META_PY) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -uuid $(UUID) -ulp $(VIV_ULP) -o $(META_JSON)
+	$(PYTHON) $(META_PY) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -ulp $(VIV_ULP) -o $(META_JSON)
 	zip -u $(VIV_PRJ_DIR)/$(VIV_DESIGN)_base.xsa $(META_JSON) $(PLATFORM_JSON)
 
 .PHONY: clean

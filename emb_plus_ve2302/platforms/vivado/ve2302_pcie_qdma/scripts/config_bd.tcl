@@ -122,7 +122,7 @@ xilinx.com:ip:mailbox:*\
 xilinx.com:ip:cmd_queue:*\
 xilinx.com:ip:xlconcat:*\
 xilinx.com:ip:xlslice:*\
-xilinx.com:ip:axi_register:*\
+xilinx.com:ip:uuid_register:*\
 xilinx.com:ip:axi_register_slice:*\
 xilinx.com:ip:proc_sys_reset:*\
 xilinx.com:ip:util_reduced_logic:*\
@@ -1271,7 +1271,7 @@ proc create_hier_cell_blp_logic { parentCell nameHier} {
   set axi_ic_rpu [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect axi_ic_rpu ]
   set_property -dict [list \
     CONFIG.NUM_CLKS {3} \
-    CONFIG.NUM_MI {9} \
+    CONFIG.NUM_MI {10} \
     CONFIG.NUM_SI {1} \
   ] $axi_ic_rpu
 
@@ -1368,7 +1368,7 @@ proc create_hier_cell_blp_logic { parentCell nameHier} {
   set pf_mailbox [ create_bd_cell -type ip -vlnv xilinx.com:ip:mailbox pf_mailbox ]
 
   # Create instance: uuid_register, and set properties
-  set uuid_register [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_register uuid_register ]
+  set uuid_register [ create_bd_cell -type ip -vlnv xilinx.com:ip:uuid_register uuid_register ]
 
   # Create instance: ulp_clocking
   create_hier_cell_ulp_clocking $hier_obj ulp_clocking
@@ -1427,7 +1427,7 @@ set axi_intc_gcq_apu [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_intc axi_
   connect_bd_intf_net -intf_net axi_ic_apu_M04_AXI [get_bd_intf_pins axi_intc_gcq_apu/s_axi] [get_bd_intf_pins axi_ic_apu/M04_AXI]
   connect_bd_intf_net -intf_net axi_ic_plmgmt_M00_AXI [get_bd_intf_pins axi_ic_plmgmt/M00_AXI] [get_bd_intf_pins pf_mailbox/S0_AXI]
   connect_bd_intf_net -intf_net axi_ic_plmgmt_M01_AXI [get_bd_intf_pins axi_ic_plmgmt/M01_AXI] [get_bd_intf_pins hw_discovery/s_axi_ctrl_pf0]
-  connect_bd_intf_net -intf_net axi_ic_plmgmt_M02_AXI [get_bd_intf_pins axi_ic_plmgmt/M02_AXI] [get_bd_intf_pins uuid_register/S_AXI]
+  connect_bd_intf_net -intf_net axi_ic_plmgmt_M02_AXI [get_bd_intf_pins axi_ic_plmgmt/M02_AXI] [get_bd_intf_pins uuid_register/S1_AXI]
   connect_bd_intf_net -intf_net axi_ic_plmgmt_M03_AXI [get_bd_intf_pins axi_ic_plmgmt/M03_AXI] [get_bd_intf_pins gcq_m2r/S00_AXI]
   connect_bd_intf_net -intf_net axi_ic_plmgmt_M04_AXI [get_bd_intf_pins axi_ic_plmgmt/M04_AXI] [get_bd_intf_pins axi_uart_mgmt_rpu/S_AXI]
   connect_bd_intf_net -intf_net axi_ic_plmgmt_M05_AXI [get_bd_intf_pins axi_ic_plmgmt/M05_AXI] [get_bd_intf_pins axi_uart_mgmt_apu0/S_AXI]
@@ -1446,6 +1446,7 @@ set axi_intc_gcq_apu [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_intc axi_
   connect_bd_intf_net -intf_net axi_ic_rpu_M06_AXI [get_bd_intf_pins axi_ic_rpu/M06_AXI] [get_bd_intf_pins ulp_clocking/s_axi_clk_wiz_0]
   connect_bd_intf_net -intf_net axi_ic_rpu_M07_AXI [get_bd_intf_pins axi_ic_rpu/M07_AXI] [get_bd_intf_pins ulp_clocking/s_axi_clk_wiz_1]
   connect_bd_intf_net -intf_net axi_ic_rpu_M08_AXI [get_bd_intf_pins axi_ic_rpu/M08_AXI] [get_bd_intf_pins pfm_irq_ctlr/S_AXI]
+  connect_bd_intf_net -intf_net axi_ic_rpu_M09_AXI [get_bd_intf_pins axi_ic_rpu/M09_AXI] [get_bd_intf_pins uuid_register/S0_AXI]
   connect_bd_intf_net -intf_net s_axi_apu_1 [get_bd_intf_pins s_axi_apu] [get_bd_intf_pins axi_ic_apu/S00_AXI]
   connect_bd_intf_net -intf_net s_axi_mgmt_ctrl_1 [get_bd_intf_pins s_axi_mgmt_ctrl] [get_bd_intf_pins axi_ic_plmgmt/S00_AXI]
   connect_bd_intf_net -intf_net s_axi_mgmt_data_1 [get_bd_intf_pins s_axi_mgmt_data] [get_bd_intf_pins axi_blp_dbg_hub/S_AXI]
@@ -2508,6 +2509,7 @@ proc create_root_design { parentCell} {
   assign_bd_address -offset 0x80044000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/M_AXI_LPD] [get_bd_addr_segs blp/blp_logic/pfm_irq_ctlr/S_AXI/Reg] -force
   assign_bd_address -offset 0x80020000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/M_AXI_LPD] [get_bd_addr_segs blp/blp_logic/base_clocking/pr_reset_gpio/S_AXI/Reg] -force
   assign_bd_address -offset 0x80030000 -range 0x00010000 -target_address_space [get_bd_addr_spaces blp/cips/M_AXI_LPD] [get_bd_addr_segs blp/blp_logic/ulp_clocking/shell_utils_ucc/S_AXI_CTRL_MGMT/reg0] -force
+  assign_bd_address -offset 0x80045000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/M_AXI_LPD] [get_bd_addr_segs blp/blp_logic/uuid_register/S0_AXI/reg0] -force
   assign_bd_address -offset 0x020000000000 -range 0x000100000000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs ulp/ai_engine_0/S00_AXI/AIE_ARRAY_0] -force
   assign_bd_address -offset 0x020105000000 -range 0x00200000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/axi_blp_dbg_hub/S_AXI_DBG_HUB/Mem0] -force
   assign_bd_address -offset 0x020205800000 -range 0x00200000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs ulp/axi_dbg_hub/S_AXI_DBG_HUB/Mem0] -force
@@ -2532,7 +2534,7 @@ proc create_root_design { parentCell} {
   assign_bd_address -offset 0x020102000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S0_AXI/S0_AXI_Reg] -force
   assign_bd_address -offset 0x020202000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S1_AXI/S1_AXI_Reg] -force
   assign_bd_address -offset 0x020107000000 -range 0x00004000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/qdma_0/S_AXI_LITE_CSR/CTL0] -force
-  assign_bd_address -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/uuid_register/S_AXI/reg0] -force
+  assign_bd_address -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/uuid_register/S1_AXI/reg0] -force
 
   # Exclude Address Segments
   exclude_bd_addr_seg -offset 0x020102021000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_0] [get_bd_addr_segs blp/blp_logic/axi_uart_mgmt_apu0/S_AXI/Reg]
@@ -2544,7 +2546,7 @@ proc create_root_design { parentCell} {
   exclude_bd_addr_seg -offset 0x020102001000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_0] [get_bd_addr_segs blp/blp_logic/hw_discovery/s_axi_ctrl_pf0/reg0]
   exclude_bd_addr_seg -offset 0x020202000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_0] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S1_AXI/S1_AXI_Reg]
   exclude_bd_addr_seg -offset 0x020102000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_0] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S0_AXI/S0_AXI_Reg]
-  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_0] [get_bd_addr_segs blp/blp_logic/uuid_rom/S_AXI/reg0]
+  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_0] [get_bd_addr_segs blp/blp_logic/uuid_register/S1_AXI/reg0]
   exclude_bd_addr_seg -offset 0x020102021000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_1] [get_bd_addr_segs blp/blp_logic/axi_uart_mgmt_apu0/S_AXI/Reg]
   exclude_bd_addr_seg -offset 0x020102020000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_1] [get_bd_addr_segs blp/blp_logic/axi_uart_mgmt_rpu/S_AXI/Reg]
   exclude_bd_addr_seg -offset 0x020102040000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_1] [get_bd_addr_segs blp/blp_logic/base_clocking/force_reset_gpio/S_AXI/Reg]
@@ -2554,7 +2556,7 @@ proc create_root_design { parentCell} {
   exclude_bd_addr_seg -offset 0x020102001000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_1] [get_bd_addr_segs blp/blp_logic/hw_discovery/s_axi_ctrl_pf0/reg0]
   exclude_bd_addr_seg -offset 0x020202000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_1] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S1_AXI/S1_AXI_Reg]
   exclude_bd_addr_seg -offset 0x020102000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_1] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S0_AXI/S0_AXI_Reg]
-  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_1] [get_bd_addr_segs blp/blp_logic/uuid_rom/S_AXI/reg0]
+  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_1] [get_bd_addr_segs blp/blp_logic/uuid_register/S1_AXI/reg0]
   exclude_bd_addr_seg -offset 0x020102021000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_2] [get_bd_addr_segs blp/blp_logic/axi_uart_mgmt_apu0/S_AXI/Reg]
   exclude_bd_addr_seg -offset 0x020102020000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_2] [get_bd_addr_segs blp/blp_logic/axi_uart_mgmt_rpu/S_AXI/Reg]
   exclude_bd_addr_seg -offset 0x020102040000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_2] [get_bd_addr_segs blp/blp_logic/base_clocking/force_reset_gpio/S_AXI/Reg]
@@ -2564,7 +2566,7 @@ proc create_root_design { parentCell} {
   exclude_bd_addr_seg -offset 0x020102001000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_2] [get_bd_addr_segs blp/blp_logic/hw_discovery/s_axi_ctrl_pf0/reg0]
   exclude_bd_addr_seg -offset 0x020202000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_2] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S1_AXI/S1_AXI_Reg]
   exclude_bd_addr_seg -offset 0x020102000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_2] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S0_AXI/S0_AXI_Reg]
-  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_2] [get_bd_addr_segs blp/blp_logic/uuid_rom/S_AXI/reg0]
+  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_2] [get_bd_addr_segs blp/blp_logic/uuid_register/S1_AXI/reg0]
   exclude_bd_addr_seg -offset 0x020102021000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_3] [get_bd_addr_segs blp/blp_logic/axi_uart_mgmt_apu0/S_AXI/Reg]
   exclude_bd_addr_seg -offset 0x020102020000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_3] [get_bd_addr_segs blp/blp_logic/axi_uart_mgmt_rpu/S_AXI/Reg]
   exclude_bd_addr_seg -offset 0x020102040000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_3] [get_bd_addr_segs blp/blp_logic/base_clocking/force_reset_gpio/S_AXI/Reg]
@@ -2574,7 +2576,7 @@ proc create_root_design { parentCell} {
   exclude_bd_addr_seg -offset 0x020102001000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_3] [get_bd_addr_segs blp/blp_logic/hw_discovery/s_axi_ctrl_pf0/reg0]
   exclude_bd_addr_seg -offset 0x020202000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_3] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S1_AXI/S1_AXI_Reg]
   exclude_bd_addr_seg -offset 0x020102000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_3] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S0_AXI/S0_AXI_Reg]
-  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_3] [get_bd_addr_segs blp/blp_logic/uuid_rom/S_AXI/reg0]
+  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_3] [get_bd_addr_segs blp/blp_logic/uuid_register/S1_AXI/reg0]
   exclude_bd_addr_seg -offset 0x050000000000 -range 0x000180000000 -target_address_space [get_bd_addr_spaces blp/cips/LPD_AXI_NOC_0] [get_bd_addr_segs blp/axi_noc_mc_1x/S00_INI/C0_DDR_CH1]
   exclude_bd_addr_seg -offset 0x020102021000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/axi_uart_mgmt_apu0/S_AXI/Reg]
   exclude_bd_addr_seg -offset 0x020102020000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/axi_uart_mgmt_rpu/S_AXI/Reg]
@@ -2583,7 +2585,7 @@ proc create_root_design { parentCell} {
   exclude_bd_addr_seg -offset 0x020102001000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/hw_discovery/s_axi_ctrl_pf0/reg0]
   exclude_bd_addr_seg -offset 0x020102000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S0_AXI/S0_AXI_Reg]
   exclude_bd_addr_seg -offset 0x020107000000 -range 0x00004000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/qdma_0/S_AXI_LITE_CSR/CTL0]
-  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/uuid_register/S_AXI/reg0]
+  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/uuid_register/S1_AXI/reg0]
   exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/axi_noc_mc_1x/S06_INI/C3_DDR_CH1]
   exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces ulp/axi_vip_0/Master_AXI] [get_bd_addr_segs blp/axi_noc_mc_1x/S04_INI/C1_DDR_LOW0]
   exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces ulp/axi_vip_1/Master_AXI] [get_bd_addr_segs blp/axi_noc_mc_1x/S05_INI/C2_DDR_LOW0]
@@ -2620,7 +2622,7 @@ proc create_root_design { parentCell} {
 
   set_property PFM.XRT_ENDPOINT \
     [dict create \
-      S_AXI ep_blp_rom_00 \
+      S1_AXI ep_blp_rom_00 \
     ] [get_bd_cells /blp/blp_logic/uuid_register]
 
   set_property PFM.XRT_ENDPOINT \

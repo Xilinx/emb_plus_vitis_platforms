@@ -37,10 +37,6 @@ set script_folder [_tcl::get_script_folder]
 variable design_name
 set design_name $proj_name
 
-# Set UUID
-variable design_uuid
-set design_uuid $uuid
-
 # If you do not already have an existing IP Integrator design open,
 # you can create a design using the following command:
 #    create_bd_design $design_name
@@ -123,10 +119,10 @@ xilinx.com:ip:util_vector_logic:*\
 xilinx.com:ip:xlconstant:*\
 xilinx.com:ip:hw_discovery:*\
 xilinx.com:ip:mailbox:*\
-xilinx.com:ip:shell_utils_uuid_rom:*\
 xilinx.com:ip:cmd_queue:*\
 xilinx.com:ip:xlconcat:*\
 xilinx.com:ip:xlslice:*\
+xilinx.com:ip:axi_register:*\
 xilinx.com:ip:axi_register_slice:*\
 xilinx.com:ip:proc_sys_reset:*\
 xilinx.com:ip:util_reduced_logic:*\
@@ -522,9 +518,9 @@ refclk_PROT0_R0_100_MHz_unique1} \
   connect_bd_intf_net -intf_net pcie_cfg_ext [get_bd_intf_pins pcie/pcie_cfg_ext] [get_bd_intf_pins pcie_cfg_ext]
 
   # Create port connections
-  connect_bd_net -net bufg_gt_sysclk_BUFG_GT_O [get_bd_pins bufg_gt_sysclk/BUFG_GT_O] [get_bd_pins pcie_phy/phy_refclk] -boundary_type upper
-  connect_bd_net -net bufg_gt_sysclk_BUFG_GT_O [get_bd_pins bufg_gt_sysclk/BUFG_GT_O] [get_bd_pins gt_quad_0/apb3clk] -boundary_type upper
-  connect_bd_net -net bufg_gt_sysclk_BUFG_GT_O [get_bd_pins bufg_gt_sysclk/BUFG_GT_O] [get_bd_pins pcie/sys_clk] -boundary_type upper
+  connect_bd_net -net bufg_gt_sysclk_BUFG_GT_O [get_bd_pins bufg_gt_sysclk/BUFG_GT_O] [get_bd_pins pcie_phy/phy_refclk]
+  connect_bd_net -net bufg_gt_sysclk_BUFG_GT_O [get_bd_pins bufg_gt_sysclk/BUFG_GT_O] [get_bd_pins gt_quad_0/apb3clk]
+  connect_bd_net -net bufg_gt_sysclk_BUFG_GT_O [get_bd_pins bufg_gt_sysclk/BUFG_GT_O] [get_bd_pins pcie/sys_clk]
   connect_bd_net -net const_1b1_dout [get_bd_pins const_1b1/dout] [get_bd_pins bufg_gt_sysclk/BUFG_GT_CE]
   connect_bd_net -net gt_quad_0_ch0_phyready [get_bd_pins gt_quad_0/ch0_phyready] [get_bd_pins pcie_phy/ch0_phyready]
   connect_bd_net -net gt_quad_0_ch0_phystatus [get_bd_pins gt_quad_0/ch0_phystatus] [get_bd_pins pcie_phy/ch0_phystatus]
@@ -539,21 +535,21 @@ refclk_PROT0_R0_100_MHz_unique1} \
   connect_bd_net -net pcie_pcie_ltssm_state [get_bd_pins pcie/pcie_ltssm_state] [get_bd_pins pcie_phy/pcie_ltssm_state]
   connect_bd_net -net pcie_phy_gt_pcieltssm [get_bd_pins pcie_phy/gt_pcieltssm] [get_bd_pins gt_quad_0/pcieltssm]
   connect_bd_net -net pcie_phy_gtrefclk [get_bd_pins pcie_phy/gtrefclk] [get_bd_pins gt_quad_0/GT_REFCLK0]
-  connect_bd_net -net pcie_phy_pcierstb [get_bd_pins pcie_phy/pcierstb] [get_bd_pins gt_quad_0/ch0_pcierstb] -boundary_type upper
-  connect_bd_net -net pcie_phy_pcierstb [get_bd_pins pcie_phy/pcierstb] [get_bd_pins gt_quad_0/ch1_pcierstb] -boundary_type upper
-  connect_bd_net -net pcie_phy_pcierstb [get_bd_pins pcie_phy/pcierstb] [get_bd_pins gt_quad_0/ch2_pcierstb] -boundary_type upper
-  connect_bd_net -net pcie_phy_pcierstb [get_bd_pins pcie_phy/pcierstb] [get_bd_pins gt_quad_0/ch3_pcierstb] -boundary_type upper
+  connect_bd_net -net pcie_phy_pcierstb [get_bd_pins pcie_phy/pcierstb] [get_bd_pins gt_quad_0/ch0_pcierstb]
+  connect_bd_net -net pcie_phy_pcierstb [get_bd_pins pcie_phy/pcierstb] [get_bd_pins gt_quad_0/ch1_pcierstb]
+  connect_bd_net -net pcie_phy_pcierstb [get_bd_pins pcie_phy/pcierstb] [get_bd_pins gt_quad_0/ch2_pcierstb]
+  connect_bd_net -net pcie_phy_pcierstb [get_bd_pins pcie_phy/pcierstb] [get_bd_pins gt_quad_0/ch3_pcierstb]
   connect_bd_net -net pcie_phy_phy_coreclk [get_bd_pins pcie_phy/phy_coreclk] [get_bd_pins pcie/phy_coreclk]
   connect_bd_net -net pcie_phy_phy_mcapclk [get_bd_pins pcie_phy/phy_mcapclk] [get_bd_pins pcie/phy_mcapclk]
-  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins pcie/phy_pclk] -boundary_type upper
-  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch0_txusrclk] -boundary_type upper
-  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch1_txusrclk] -boundary_type upper
-  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch2_txusrclk] -boundary_type upper
-  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch3_txusrclk] -boundary_type upper
-  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch0_rxusrclk] -boundary_type upper
-  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch1_rxusrclk] -boundary_type upper
-  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch2_rxusrclk] -boundary_type upper
-  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch3_rxusrclk] -boundary_type upper
+  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins pcie/phy_pclk]
+  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch0_txusrclk]
+  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch1_txusrclk]
+  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch2_txusrclk]
+  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch3_txusrclk]
+  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch0_rxusrclk]
+  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch1_rxusrclk]
+  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch2_rxusrclk]
+  connect_bd_net -net pcie_phy_phy_pclk [get_bd_pins pcie_phy/phy_pclk] [get_bd_pins gt_quad_0/ch3_rxusrclk]
   connect_bd_net -net pcie_phy_phy_userclk [get_bd_pins pcie_phy/phy_userclk] [get_bd_pins pcie/phy_userclk]
   connect_bd_net -net pcie_phy_phy_userclk2 [get_bd_pins pcie_phy/phy_userclk2] [get_bd_pins pcie/phy_userclk2]
   connect_bd_net -net pcie_phy_rdy_out [get_bd_pins pcie/phy_rdy_out] [get_bd_pins phy_rdy_out]
@@ -561,10 +557,10 @@ refclk_PROT0_R0_100_MHz_unique1} \
   connect_bd_net -net pcie_user_lnk_up [get_bd_pins pcie/user_lnk_up] [get_bd_pins user_lnk_up]
   connect_bd_net -net pcie_user_reset [get_bd_pins pcie/user_reset] [get_bd_pins user_reset]
   connect_bd_net -net refclk_ibuf_IBUF_DS_ODIV2 [get_bd_pins refclk_ibuf/IBUF_DS_ODIV2] [get_bd_pins bufg_gt_sysclk/BUFG_GT_I]
-  connect_bd_net -net refclk_ibuf_IBUF_OUT [get_bd_pins refclk_ibuf/IBUF_OUT] [get_bd_pins pcie_phy/phy_gtrefclk] -boundary_type upper
-  connect_bd_net -net refclk_ibuf_IBUF_OUT [get_bd_pins refclk_ibuf/IBUF_OUT] [get_bd_pins pcie/sys_clk_gt] -boundary_type upper
-  connect_bd_net -net sys_reset_1 [get_bd_pins sys_reset] [get_bd_pins pcie_phy/phy_rst_n] -boundary_type upper
-  connect_bd_net -net sys_reset_1 [get_bd_pins sys_reset] [get_bd_pins pcie/sys_reset] -boundary_type upper
+  connect_bd_net -net refclk_ibuf_IBUF_OUT [get_bd_pins refclk_ibuf/IBUF_OUT] [get_bd_pins pcie_phy/phy_gtrefclk]
+  connect_bd_net -net refclk_ibuf_IBUF_OUT [get_bd_pins refclk_ibuf/IBUF_OUT] [get_bd_pins pcie/sys_clk_gt]
+  connect_bd_net -net sys_reset_1 [get_bd_pins sys_reset] [get_bd_pins pcie_phy/phy_rst_n]
+  connect_bd_net -net sys_reset_1 [get_bd_pins sys_reset] [get_bd_pins pcie/sys_reset]
 
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -651,8 +647,8 @@ proc create_hier_cell_ert_support { parentCell nameHier } {
   # Create port connections
   connect_bd_net -net axi_intc_0_31_irq [get_bd_pins axi_intc_0_31/irq] [get_bd_pins irq_cu_completion]
   connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_intc_0_31/s_axi_aclk]
-  connect_bd_net -net kernel_interupts_stc_1 [get_bd_pins kernel_interupts_stc] [get_bd_pins slice_0_15/Din] -boundary_type upper
-  connect_bd_net -net kernel_interupts_stc_1 [get_bd_pins kernel_interupts_stc] [get_bd_pins slice_16_31/Din] -boundary_type upper
+  connect_bd_net -net kernel_interupts_stc_1 [get_bd_pins kernel_interupts_stc] [get_bd_pins slice_0_15/Din]
+  connect_bd_net -net kernel_interupts_stc_1 [get_bd_pins kernel_interupts_stc] [get_bd_pins slice_16_31/Din]
   connect_bd_net -net resetn_pl_axi_net [get_bd_pins resetn_pl_axi] [get_bd_pins axi_intc_0_31/s_axi_aresetn]
   connect_bd_net -net slice_0_15_Dout [get_bd_pins slice_0_15/Dout] [get_bd_pins xlconcat_0/In0]
   connect_bd_net -net slice_16_31_Dout [get_bd_pins slice_16_31/Dout] [get_bd_pins xlconcat_0/In1]
@@ -785,25 +781,25 @@ proc create_hier_cell_base_clocking { parentCell nameHier } {
   # Create port connections
   connect_bd_net -net clk_freerun_net [get_bd_pins clk_freerun] [get_bd_pins pl_reset_freerun_sync/slowest_sync_clk]
   connect_bd_net -net clk_pcie_net [get_bd_pins clk_pcie] [get_bd_pins pcie_reset_sync/slowest_sync_clk]
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins pl_reset_sync/slowest_sync_clk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins pr_reset_gpio/s_axi_aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins pr_reset_gpio_sync/slowest_sync_clk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins force_reset_gpio/s_axi_aclk] -boundary_type upper
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins pl_reset_sync/slowest_sync_clk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins pr_reset_gpio/s_axi_aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins pr_reset_gpio_sync/slowest_sync_clk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins force_reset_gpio/s_axi_aclk]
   connect_bd_net -net clk_pl_pcie_net [get_bd_pins clk_pl_pcie] [get_bd_pins pl_pcie_reset_gpio_sync/slowest_sync_clk]
   connect_bd_net -net force_reset_gpio_gpio_io_o [get_bd_pins force_reset_gpio/gpio_io_o] [get_bd_pins force_reset_enable]
   connect_bd_net -net force_reset_result_1 [get_bd_pins force_reset_result] [get_bd_pins force_reset_gpio/gpio2_io_i]
   connect_bd_net -net pcie_reset_sync_interconnect_aresetn [get_bd_pins pcie_reset_sync/interconnect_aresetn] [get_bd_pins resetn_pcie_sync]
   connect_bd_net -net pl_pcie_reset_gpio_sync_interconnect_aresetn [get_bd_pins pl_pcie_reset_gpio_sync/interconnect_aresetn] [get_bd_pins resetn_pl_pcie_pr]
-  connect_bd_net -net pl_reset_freerun_sync_interconnect_aresetn [get_bd_pins pl_reset_freerun_sync/interconnect_aresetn] [get_bd_pins resetn_pl_freerun] -boundary_type upper
-  connect_bd_net -net pl_reset_sync_interconnect_aresetn [get_bd_pins pl_reset_sync/interconnect_aresetn] [get_bd_pins resetn_pl_axi_sync] -boundary_type upper
-  connect_bd_net -net pl_reset_sync_interconnect_aresetn [get_bd_pins pl_reset_sync/interconnect_aresetn] [get_bd_pins pl_pcie_reset_gpio_sync/ext_reset_in] -boundary_type upper
-  connect_bd_net -net pl_reset_sync_interconnect_aresetn [get_bd_pins pl_reset_sync/interconnect_aresetn] [get_bd_pins pr_reset_gpio/s_axi_aresetn] -boundary_type upper
-  connect_bd_net -net pl_reset_sync_interconnect_aresetn [get_bd_pins pl_reset_sync/interconnect_aresetn] [get_bd_pins pr_reset_gpio_sync/ext_reset_in] -boundary_type upper
-  connect_bd_net -net pl_reset_sync_interconnect_aresetn [get_bd_pins pl_reset_sync/interconnect_aresetn] [get_bd_pins force_reset_gpio/s_axi_aresetn] -boundary_type upper
-  connect_bd_net -net pr_or_reset_Res [get_bd_pins pr_or_reset/Res] [get_bd_pins pl_pcie_reset_gpio_sync/aux_reset_in] -boundary_type upper
-  connect_bd_net -net pr_or_reset_Res [get_bd_pins pr_or_reset/Res] [get_bd_pins pr_reset_gpio_sync/aux_reset_in] -boundary_type upper
-  connect_bd_net -net pr_reset_gpio_gpio_io_o [get_bd_pins pr_reset_gpio/gpio_io_o] [get_bd_pins pr_or_reset/Op1] -boundary_type upper
-  connect_bd_net -net pr_reset_gpio_gpio_io_o [get_bd_pins pr_reset_gpio/gpio_io_o] [get_bd_pins pr_reset_gpio/gpio2_io_i] -boundary_type upper
+  connect_bd_net -net pl_reset_freerun_sync_interconnect_aresetn [get_bd_pins pl_reset_freerun_sync/interconnect_aresetn] [get_bd_pins resetn_pl_freerun]
+  connect_bd_net -net pl_reset_sync_interconnect_aresetn [get_bd_pins pl_reset_sync/interconnect_aresetn] [get_bd_pins resetn_pl_axi_sync]
+  connect_bd_net -net pl_reset_sync_interconnect_aresetn [get_bd_pins pl_reset_sync/interconnect_aresetn] [get_bd_pins pl_pcie_reset_gpio_sync/ext_reset_in]
+  connect_bd_net -net pl_reset_sync_interconnect_aresetn [get_bd_pins pl_reset_sync/interconnect_aresetn] [get_bd_pins pr_reset_gpio/s_axi_aresetn]
+  connect_bd_net -net pl_reset_sync_interconnect_aresetn [get_bd_pins pl_reset_sync/interconnect_aresetn] [get_bd_pins pr_reset_gpio_sync/ext_reset_in]
+  connect_bd_net -net pl_reset_sync_interconnect_aresetn [get_bd_pins pl_reset_sync/interconnect_aresetn] [get_bd_pins force_reset_gpio/s_axi_aresetn]
+  connect_bd_net -net pr_or_reset_Res [get_bd_pins pr_or_reset/Res] [get_bd_pins pl_pcie_reset_gpio_sync/aux_reset_in]
+  connect_bd_net -net pr_or_reset_Res [get_bd_pins pr_or_reset/Res] [get_bd_pins pr_reset_gpio_sync/aux_reset_in]
+  connect_bd_net -net pr_reset_gpio_gpio_io_o [get_bd_pins pr_reset_gpio/gpio_io_o] [get_bd_pins pr_or_reset/Op1]
+  connect_bd_net -net pr_reset_gpio_gpio_io_o [get_bd_pins pr_reset_gpio/gpio_io_o] [get_bd_pins pr_reset_gpio/gpio2_io_i]
   connect_bd_net -net pr_reset_gpio_sync_interconnect_aresetn [get_bd_pins pr_reset_gpio_sync/interconnect_aresetn] [get_bd_pins resetn_pr]
   connect_bd_net -net resetn_pcie_1 [get_bd_pins resetn_pcie] [get_bd_pins pcie_reset_sync/ext_reset_in]
   connect_bd_net -net resetn_pl_axi_1 [get_bd_pins resetn_pl_axi] [get_bd_pins pl_reset_sync/ext_reset_in]
@@ -960,36 +956,36 @@ proc create_hier_cell_dfx_decoupling { parentCell nameHier } {
   connect_bd_intf_net -intf_net s_ip_axi_ctrl_user_00_M_AXI [get_bd_intf_pins ULP_M_AXI_CTRL_USER_00] [get_bd_intf_pins s_ip_axi_ctrl_user_00/M_AXI]
 
   # Create port connections
-  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_pins blp_s_aclk_ctrl_00] [get_bd_pins ip_aresetn_pr_reset_00/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_pins blp_s_aclk_ctrl_00] [get_bd_pins ip_irq_kernel_00/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_pins blp_s_aclk_ctrl_00] [get_bd_pins s_ip_axi_ctrl_user_00/aclk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_pins blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_aresetn_ext_tog_kernel_00/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_pins blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_ext_tog_ctrl_kernel_00_out/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_pins blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_ext_tog_ctrl_kernel_00_in/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_pins blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_ext_tog_ctrl_kernel_00_enable/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_pins blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_aresetn_ext_tog_kernel_01/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_pins blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_ext_tog_ctrl_kernel_01_out/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_pins blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_ext_tog_ctrl_kernel_01_in/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_pins blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_ext_tog_ctrl_kernel_01_enable/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_pcie_00_1 [get_bd_pins clk_pl_pcie] [get_bd_pins ip_aresetn_pcie_reset_00/clk] -boundary_type upper
-  connect_bd_net -net blp_s_aclk_pcie_00_1 [get_bd_pins clk_pl_pcie] [get_bd_pins ip_irq_dbg_fw_00/clk] -boundary_type upper
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_pins blp_s_aclk_ctrl_00] [get_bd_pins ip_aresetn_pr_reset_00/clk]
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_pins blp_s_aclk_ctrl_00] [get_bd_pins ip_irq_kernel_00/clk]
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_pins blp_s_aclk_ctrl_00] [get_bd_pins s_ip_axi_ctrl_user_00/aclk]
+  connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_pins blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_aresetn_ext_tog_kernel_00/clk]
+  connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_pins blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_ext_tog_ctrl_kernel_00_out/clk]
+  connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_pins blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_ext_tog_ctrl_kernel_00_in/clk]
+  connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_pins blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_ext_tog_ctrl_kernel_00_enable/clk]
+  connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_pins blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_aresetn_ext_tog_kernel_01/clk]
+  connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_pins blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_ext_tog_ctrl_kernel_01_out/clk]
+  connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_pins blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_ext_tog_ctrl_kernel_01_in/clk]
+  connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_pins blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_ext_tog_ctrl_kernel_01_enable/clk]
+  connect_bd_net -net blp_s_aclk_pcie_00_1 [get_bd_pins clk_pl_pcie] [get_bd_pins ip_aresetn_pcie_reset_00/clk]
+  connect_bd_net -net blp_s_aclk_pcie_00_1 [get_bd_pins clk_pl_pcie] [get_bd_pins ip_irq_dbg_fw_00/clk]
   connect_bd_net -net blp_s_aresetn_ext_tog_kernel_00_net [get_bd_pins blp_s_aresetn_ext_tog_kernel_00] [get_bd_pins ip_aresetn_ext_tog_kernel_00/D]
   connect_bd_net -net blp_s_aresetn_ext_tog_kernel_01_net [get_bd_pins blp_s_aresetn_ext_tog_kernel_01] [get_bd_pins ip_aresetn_ext_tog_kernel_01/D]
   connect_bd_net -net blp_s_aresetn_pcie_reset_00_1 [get_bd_pins blp_s_aresetn_pcie_reset_00] [get_bd_pins ip_aresetn_pcie_reset_00/D]
-  connect_bd_net -net blp_s_aresetn_pr_reset_00_1 [get_bd_pins blp_s_aresetn_pr_reset_00] [get_bd_pins ip_aresetn_pr_reset_00/D] -boundary_type upper
-  connect_bd_net -net blp_s_aresetn_pr_reset_00_1 [get_bd_pins blp_s_aresetn_pr_reset_00] [get_bd_pins s_ip_axi_ctrl_user_00/aresetn] -boundary_type upper
+  connect_bd_net -net blp_s_aresetn_pr_reset_00_1 [get_bd_pins blp_s_aresetn_pr_reset_00] [get_bd_pins ip_aresetn_pr_reset_00/D]
+  connect_bd_net -net blp_s_aresetn_pr_reset_00_1 [get_bd_pins blp_s_aresetn_pr_reset_00] [get_bd_pins s_ip_axi_ctrl_user_00/aresetn]
   connect_bd_net -net blp_s_ext_tog_ctrl_kernel_00_out_net [get_bd_pins blp_s_ext_tog_ctrl_kernel_00_out] [get_bd_pins ip_ext_tog_ctrl_kernel_00_out/D]
   connect_bd_net -net blp_s_ext_tog_ctrl_kernel_01_out_net [get_bd_pins blp_s_ext_tog_ctrl_kernel_01_out] [get_bd_pins ip_ext_tog_ctrl_kernel_01_out/D]
-  connect_bd_net -net ip_aresetn_ext_tog_kernel_00_q [get_bd_pins ip_aresetn_ext_tog_kernel_00/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_00_out/reset] -boundary_type upper
-  connect_bd_net -net ip_aresetn_ext_tog_kernel_00_q [get_bd_pins ip_aresetn_ext_tog_kernel_00/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_00_in/reset] -boundary_type upper
-  connect_bd_net -net ip_aresetn_ext_tog_kernel_00_q [get_bd_pins ip_aresetn_ext_tog_kernel_00/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_00_enable/reset] -boundary_type upper
-  connect_bd_net -net ip_aresetn_ext_tog_kernel_01_q [get_bd_pins ip_aresetn_ext_tog_kernel_01/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_01_out/reset] -boundary_type upper
-  connect_bd_net -net ip_aresetn_ext_tog_kernel_01_q [get_bd_pins ip_aresetn_ext_tog_kernel_01/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_01_in/reset] -boundary_type upper
-  connect_bd_net -net ip_aresetn_ext_tog_kernel_01_q [get_bd_pins ip_aresetn_ext_tog_kernel_01/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_01_enable/reset] -boundary_type upper
-  connect_bd_net -net ip_aresetn_pcie_reset_00_q [get_bd_pins ip_aresetn_pcie_reset_00/Q] [get_bd_pins ulp_m_aresetn_pcie_reset_00] -boundary_type upper
-  connect_bd_net -net ip_aresetn_pcie_reset_00_q [get_bd_pins ip_aresetn_pcie_reset_00/Q] [get_bd_pins ip_irq_dbg_fw_00/reset] -boundary_type upper
-  connect_bd_net -net ip_aresetn_pr_reset_00_q [get_bd_pins ip_aresetn_pr_reset_00/Q] [get_bd_pins ulp_m_aresetn_pr_reset_00] -boundary_type upper
-  connect_bd_net -net ip_aresetn_pr_reset_00_q [get_bd_pins ip_aresetn_pr_reset_00/Q] [get_bd_pins ip_irq_kernel_00/reset] -boundary_type upper
+  connect_bd_net -net ip_aresetn_ext_tog_kernel_00_q [get_bd_pins ip_aresetn_ext_tog_kernel_00/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_00_out/reset]
+  connect_bd_net -net ip_aresetn_ext_tog_kernel_00_q [get_bd_pins ip_aresetn_ext_tog_kernel_00/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_00_in/reset]
+  connect_bd_net -net ip_aresetn_ext_tog_kernel_00_q [get_bd_pins ip_aresetn_ext_tog_kernel_00/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_00_enable/reset]
+  connect_bd_net -net ip_aresetn_ext_tog_kernel_01_q [get_bd_pins ip_aresetn_ext_tog_kernel_01/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_01_out/reset]
+  connect_bd_net -net ip_aresetn_ext_tog_kernel_01_q [get_bd_pins ip_aresetn_ext_tog_kernel_01/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_01_in/reset]
+  connect_bd_net -net ip_aresetn_ext_tog_kernel_01_q [get_bd_pins ip_aresetn_ext_tog_kernel_01/Q] [get_bd_pins ip_ext_tog_ctrl_kernel_01_enable/reset]
+  connect_bd_net -net ip_aresetn_pcie_reset_00_q [get_bd_pins ip_aresetn_pcie_reset_00/Q] [get_bd_pins ulp_m_aresetn_pcie_reset_00]
+  connect_bd_net -net ip_aresetn_pcie_reset_00_q [get_bd_pins ip_aresetn_pcie_reset_00/Q] [get_bd_pins ip_irq_dbg_fw_00/reset]
+  connect_bd_net -net ip_aresetn_pr_reset_00_q [get_bd_pins ip_aresetn_pr_reset_00/Q] [get_bd_pins ulp_m_aresetn_pr_reset_00]
+  connect_bd_net -net ip_aresetn_pr_reset_00_q [get_bd_pins ip_aresetn_pr_reset_00/Q] [get_bd_pins ip_irq_kernel_00/reset]
   connect_bd_net -net ip_ext_tog_ctrl_kernel_00_enable_q [get_bd_pins ip_ext_tog_ctrl_kernel_00_enable/Q] [get_bd_pins blp_m_ext_tog_ctrl_kernel_00_enable]
   connect_bd_net -net ip_ext_tog_ctrl_kernel_00_in_q [get_bd_pins ip_ext_tog_ctrl_kernel_00_in/Q] [get_bd_pins blp_m_ext_tog_ctrl_kernel_00_in]
   connect_bd_net -net ip_ext_tog_ctrl_kernel_00_out_q [get_bd_pins ip_ext_tog_ctrl_kernel_00_out/Q] [get_bd_pins ulp_m_ext_tog_ctrl_kernel_00_out]
@@ -1138,8 +1134,8 @@ proc create_hier_cell_ulp_clocking { parentCell nameHier } {
   connect_bd_net -net shell_utils_ucc_aclk_kernel_01 [get_bd_pins shell_utils_ucc/aclk_kernel_01] [get_bd_pins aclk_kernel_01]
   connect_bd_net -net shell_utils_ucc_ext_tog_ctrl_kernel_00_out [get_bd_pins shell_utils_ucc/ext_tog_ctrl_kernel_00_out] [get_bd_pins ext_tog_ctrl_kernel_00_out]
   connect_bd_net -net shell_utils_ucc_ext_tog_ctrl_kernel_01_out [get_bd_pins shell_utils_ucc/ext_tog_ctrl_kernel_01_out] [get_bd_pins ext_tog_ctrl_kernel_01_out]
-  connect_bd_net -net shell_utils_ucc_power_down [get_bd_pins shell_utils_ucc/power_down] [get_bd_pins clkwiz_aclk_kernel_01/power_down] -boundary_type upper
-  connect_bd_net -net shell_utils_ucc_power_down [get_bd_pins shell_utils_ucc/power_down] [get_bd_pins clkwiz_aclk_kernel_00/power_down] -boundary_type upper
+  connect_bd_net -net shell_utils_ucc_power_down [get_bd_pins shell_utils_ucc/power_down] [get_bd_pins clkwiz_aclk_kernel_01/power_down]
+  connect_bd_net -net shell_utils_ucc_power_down [get_bd_pins shell_utils_ucc/power_down] [get_bd_pins clkwiz_aclk_kernel_00/power_down]
   connect_bd_net -net shell_utils_ucc_rst_async_kernel_00 [get_bd_pins shell_utils_ucc/rst_async_kernel_00] [get_bd_pins aresetn_ext_tog_kernel_00]
   connect_bd_net -net shell_utils_ucc_rst_async_kernel_01 [get_bd_pins shell_utils_ucc/rst_async_kernel_01] [get_bd_pins aresetn_ext_tog_kernel_01]
 
@@ -1371,11 +1367,8 @@ proc create_hier_cell_blp_logic { parentCell nameHier} {
   # Create instance: pf_mailbox, and set properties
   set pf_mailbox [ create_bd_cell -type ip -vlnv xilinx.com:ip:mailbox pf_mailbox ]
 
-  # Create instance: uuid_rom, and set properties - pass global variable design_uuid to IP
-  set uuid_rom [ create_bd_cell -type ip -vlnv xilinx.com:ip:shell_utils_uuid_rom uuid_rom ]
-  set_property -dict [ list \
-    CONFIG.C_INITIAL_UUID $::design_uuid \
- ] $uuid_rom
+  # Create instance: uuid_register, and set properties
+  set uuid_register [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_register uuid_register ]
 
   # Create instance: ulp_clocking
   create_hier_cell_ulp_clocking $hier_obj ulp_clocking
@@ -1434,7 +1427,7 @@ set axi_intc_gcq_apu [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_intc axi_
   connect_bd_intf_net -intf_net axi_ic_apu_M04_AXI [get_bd_intf_pins axi_intc_gcq_apu/s_axi] [get_bd_intf_pins axi_ic_apu/M04_AXI]
   connect_bd_intf_net -intf_net axi_ic_plmgmt_M00_AXI [get_bd_intf_pins axi_ic_plmgmt/M00_AXI] [get_bd_intf_pins pf_mailbox/S0_AXI]
   connect_bd_intf_net -intf_net axi_ic_plmgmt_M01_AXI [get_bd_intf_pins axi_ic_plmgmt/M01_AXI] [get_bd_intf_pins hw_discovery/s_axi_ctrl_pf0]
-  connect_bd_intf_net -intf_net axi_ic_plmgmt_M02_AXI [get_bd_intf_pins axi_ic_plmgmt/M02_AXI] [get_bd_intf_pins uuid_rom/S_AXI]
+  connect_bd_intf_net -intf_net axi_ic_plmgmt_M02_AXI [get_bd_intf_pins axi_ic_plmgmt/M02_AXI] [get_bd_intf_pins uuid_register/S_AXI]
   connect_bd_intf_net -intf_net axi_ic_plmgmt_M03_AXI [get_bd_intf_pins axi_ic_plmgmt/M03_AXI] [get_bd_intf_pins gcq_m2r/S00_AXI]
   connect_bd_intf_net -intf_net axi_ic_plmgmt_M04_AXI [get_bd_intf_pins axi_ic_plmgmt/M04_AXI] [get_bd_intf_pins axi_uart_mgmt_rpu/S_AXI]
   connect_bd_intf_net -intf_net axi_ic_plmgmt_M05_AXI [get_bd_intf_pins axi_ic_plmgmt/M05_AXI] [get_bd_intf_pins axi_uart_mgmt_apu0/S_AXI]
@@ -1473,37 +1466,37 @@ set axi_intc_gcq_apu [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_intc axi_
   connect_bd_net -net axi_uart_rpu_interrupt [get_bd_pins axi_uart_rpu/interrupt] [get_bd_pins irq_debug_uart_rpu]
   connect_bd_net -net axi_uart_rpu_tx [get_bd_pins axi_uart_rpu/tx] [get_bd_pins axi_uart_mgmt_rpu/rx]
   connect_bd_net -net base_clocking_force_reset_enable [get_bd_pins base_clocking/force_reset_enable] [get_bd_pins force_reset_enable]
-  connect_bd_net -net clk_pcie_net [get_bd_pins clk_pcie] [get_bd_pins base_clocking/clk_pcie] -boundary_type upper
-  connect_bd_net -net clk_pcie_net [get_bd_pins clk_pcie] [get_bd_pins hw_discovery/aclk_pcie] -boundary_type upper
-  connect_bd_net -net clk_pcie_net [get_bd_pins clk_pcie] [get_bd_pins pfm_irq_ctlr/aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_blp_dbg_hub/aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_firewall_user/aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_ic_apu/aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_ic_plmgmt/aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_ic_pluser/aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_ic_rpu/aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_uart_apu0/s_axi_aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_uart_mgmt_apu0/s_axi_aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_uart_mgmt_rpu/s_axi_aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_uart_rpu/s_axi_aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins base_clocking/clk_pl_axi] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins ert_support/clk_pl_axi] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins hw_discovery/aclk_ctrl] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins pf_mailbox/S0_AXI_ACLK] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins pf_mailbox/S1_AXI_ACLK] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins uuid_rom/S_AXI_ACLK] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins ulp_clocking/aclk_ctrl] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins gcq_r2a/aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins gcq_m2r/aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins gcq_u2a_0/aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_intc_uart_apu/s_axi_aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_intc_gcq_apu/s_axi_aclk] -boundary_type upper
-  connect_bd_net -net clk_pl_pcie_net [get_bd_pins clk_pl_pcie] [get_bd_pins axi_ic_rpu/aclk1] -boundary_type upper
-  connect_bd_net -net clk_pl_pcie_net [get_bd_pins clk_pl_pcie] [get_bd_pins base_clocking/clk_pl_pcie] -boundary_type upper
-  connect_bd_net -net clk_pl_pcie_net [get_bd_pins clk_pl_pcie] [get_bd_pins ulp_clocking/aclk_pcie] -boundary_type upper
-  connect_bd_net -net clk_pl_ref_net [get_bd_pins clk_pl_ref] [get_bd_pins base_clocking/clk_freerun] -boundary_type upper
-  connect_bd_net -net clk_pl_ref_net [get_bd_pins clk_pl_ref] [get_bd_pins ulp_clocking/aclk_freerun] -boundary_type upper
-  connect_bd_net -net clk_pl_ref_net [get_bd_pins clk_pl_ref] [get_bd_pins axi_ic_rpu/aclk2] -boundary_type upper
+  connect_bd_net -net clk_pcie_net [get_bd_pins clk_pcie] [get_bd_pins base_clocking/clk_pcie]
+  connect_bd_net -net clk_pcie_net [get_bd_pins clk_pcie] [get_bd_pins hw_discovery/aclk_pcie]
+  connect_bd_net -net clk_pcie_net [get_bd_pins clk_pcie] [get_bd_pins pfm_irq_ctlr/aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_blp_dbg_hub/aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_firewall_user/aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_ic_apu/aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_ic_plmgmt/aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_ic_pluser/aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_ic_rpu/aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_uart_apu0/s_axi_aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_uart_mgmt_apu0/s_axi_aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_uart_mgmt_rpu/s_axi_aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_uart_rpu/s_axi_aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins base_clocking/clk_pl_axi]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins ert_support/clk_pl_axi]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins hw_discovery/aclk_ctrl]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins pf_mailbox/S0_AXI_ACLK]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins pf_mailbox/S1_AXI_ACLK]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins uuid_register/S_AXI_ACLK]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins ulp_clocking/aclk_ctrl]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins gcq_r2a/aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins gcq_m2r/aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins gcq_u2a_0/aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_intc_uart_apu/s_axi_aclk]
+  connect_bd_net -net clk_pl_axi_net [get_bd_pins clk_pl_axi] [get_bd_pins axi_intc_gcq_apu/s_axi_aclk]
+  connect_bd_net -net clk_pl_pcie_net [get_bd_pins clk_pl_pcie] [get_bd_pins axi_ic_rpu/aclk1]
+  connect_bd_net -net clk_pl_pcie_net [get_bd_pins clk_pl_pcie] [get_bd_pins base_clocking/clk_pl_pcie]
+  connect_bd_net -net clk_pl_pcie_net [get_bd_pins clk_pl_pcie] [get_bd_pins ulp_clocking/aclk_pcie]
+  connect_bd_net -net clk_pl_ref_net [get_bd_pins clk_pl_ref] [get_bd_pins base_clocking/clk_freerun]
+  connect_bd_net -net clk_pl_ref_net [get_bd_pins clk_pl_ref] [get_bd_pins ulp_clocking/aclk_freerun]
+  connect_bd_net -net clk_pl_ref_net [get_bd_pins clk_pl_ref] [get_bd_pins axi_ic_rpu/aclk2]
   connect_bd_net -net ert_support_irq_cu_completion [get_bd_pins ert_support/irq_cu_completion] [get_bd_pins irq_cu_completion]
   connect_bd_net -net force_reset_result_1 [get_bd_pins force_reset_result] [get_bd_pins base_clocking/force_reset_result]
   connect_bd_net -net gate_user_or_Res [get_bd_pins gate_user_or/Res] [get_bd_pins irq_firewall_user]
@@ -1527,35 +1520,35 @@ set axi_intc_gcq_apu [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_intc axi_
   connect_bd_net -net xlconcat_irq_vec_dout [get_bd_pins xlconcat_irq_vec/dout] [get_bd_pins irq_vec]
   connect_bd_net -net pfm_irq_ctlr_irq_vec [get_bd_pins pfm_irq_ctlr/irq_vec] [get_bd_pins xlconcat_irq_vec/In0]
   connect_bd_net -net pfm_irq_ctlr_irq_vld [get_bd_pins pfm_irq_ctlr/irq_vld] [get_bd_pins irq_vld]
-  connect_bd_net -net resetn_pcie_sync_net [get_bd_pins base_clocking/resetn_pcie_sync] [get_bd_pins hw_discovery/aresetn_pcie] -boundary_type upper
-  connect_bd_net -net resetn_pcie_sync_net [get_bd_pins base_clocking/resetn_pcie_sync] [get_bd_pins pfm_irq_ctlr/aresetn] -boundary_type upper
+  connect_bd_net -net resetn_pcie_sync_net [get_bd_pins base_clocking/resetn_pcie_sync] [get_bd_pins hw_discovery/aresetn_pcie]
+  connect_bd_net -net resetn_pcie_sync_net [get_bd_pins base_clocking/resetn_pcie_sync] [get_bd_pins pfm_irq_ctlr/aresetn]
   connect_bd_net -net resetn_pl_axi_net [get_bd_pins resetn_pl_axi] [get_bd_pins base_clocking/resetn_pl_axi]
   create_bd_net resetn_pl_axi_sync_net
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins base_clocking/resetn_pl_axi_sync] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_blp_dbg_hub/aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_firewall_user/aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_ic_plmgmt/aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_ic_pluser/aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_ic_rpu/aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_uart_apu0/s_axi_aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_uart_mgmt_apu0/s_axi_aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_uart_mgmt_rpu/s_axi_aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_uart_rpu/s_axi_aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins base_clocking/resetn_pcie] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins ert_support/resetn_pl_axi] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins hw_discovery/aresetn_ctrl] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins pf_mailbox/S0_AXI_ARESETN] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins pf_mailbox/S1_AXI_ARESETN] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins uuid_rom/S_AXI_ARESETN] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins ulp_clocking/aresetn_ctrl] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins gcq_r2a/aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins gcq_m2r/aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins gcq_u2a_0/aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_intc_uart_apu/s_axi_aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_intc_gcq_apu/s_axi_aresetn] -boundary_type upper
-  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_ic_apu/aresetn] -boundary_type upper
-  connect_bd_net -net resetn_pl_pcie_pr_net [get_bd_pins base_clocking/resetn_pl_pcie_pr] [get_bd_pins resetn_pl_pcie_pr] -boundary_type upper
-  connect_bd_net -net resetn_pl_pcie_pr_net [get_bd_pins base_clocking/resetn_pl_pcie_pr] [get_bd_pins ulp_clocking/aresetn_pcie] -boundary_type upper
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins base_clocking/resetn_pl_axi_sync]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_blp_dbg_hub/aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_firewall_user/aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_ic_plmgmt/aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_ic_pluser/aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_ic_rpu/aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_uart_apu0/s_axi_aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_uart_mgmt_apu0/s_axi_aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_uart_mgmt_rpu/s_axi_aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_uart_rpu/s_axi_aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins base_clocking/resetn_pcie]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins ert_support/resetn_pl_axi]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins hw_discovery/aresetn_ctrl]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins pf_mailbox/S0_AXI_ARESETN]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins pf_mailbox/S1_AXI_ARESETN]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins uuid_register/S_AXI_ARESETN]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins ulp_clocking/aresetn_ctrl]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins gcq_r2a/aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins gcq_m2r/aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins gcq_u2a_0/aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_intc_uart_apu/s_axi_aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_intc_gcq_apu/s_axi_aresetn]
+  connect_bd_net -net [get_bd_nets resetn_pl_axi_sync_net] [get_bd_pins axi_ic_apu/aresetn]
+  connect_bd_net -net resetn_pl_pcie_pr_net [get_bd_pins base_clocking/resetn_pl_pcie_pr] [get_bd_pins resetn_pl_pcie_pr]
+  connect_bd_net -net resetn_pl_pcie_pr_net [get_bd_pins base_clocking/resetn_pl_pcie_pr] [get_bd_pins ulp_clocking/aresetn_pcie]
   connect_bd_net -net resetn_pr_net [get_bd_pins base_clocking/resetn_pr] [get_bd_pins resetn_pr]
   connect_bd_net -net aresetn_freerun [get_bd_pins base_clocking/resetn_pl_freerun] [get_bd_pins ulp_clocking/aresetn_freerun]
   connect_bd_net -net ulp_clocking_aclk_ext_tog_kernel_00 [get_bd_pins ulp_clocking/aclk_ext_tog_kernel_00] [get_bd_pins aclk_ext_tog_kernel_00]
@@ -2268,10 +2261,10 @@ proc create_hier_cell_blp { parentCell nameHier} {
   connect_bd_intf_net -intf_net ulp_MC_M02_INI [get_bd_intf_pins ULP_S_INI_MC_02] [get_bd_intf_pins axi_noc_mc_1x/S07_INI]
 
   # Create port connections
-  connect_bd_net -net blp_logic_aclk_ext_tog_kernel_00 [get_bd_pins blp_logic/aclk_ext_tog_kernel_00] [get_bd_pins dfx_decoupling/blp_s_aclk_ext_tog_kernel_00] -boundary_type upper
-  connect_bd_net -net blp_logic_aclk_ext_tog_kernel_00 [get_bd_pins blp_logic/aclk_ext_tog_kernel_00] [get_bd_pins ulp_m_aclk_ext_tog_kernel_00] -boundary_type upper
-  connect_bd_net -net blp_logic_aclk_ext_tog_kernel_01 [get_bd_pins blp_logic/aclk_ext_tog_kernel_01] [get_bd_pins dfx_decoupling/blp_s_aclk_ext_tog_kernel_01] -boundary_type upper
-  connect_bd_net -net blp_logic_aclk_ext_tog_kernel_01 [get_bd_pins blp_logic/aclk_ext_tog_kernel_01] [get_bd_pins ulp_m_aclk_ext_tog_kernel_01] -boundary_type upper
+  connect_bd_net -net blp_logic_aclk_ext_tog_kernel_00 [get_bd_pins blp_logic/aclk_ext_tog_kernel_00] [get_bd_pins dfx_decoupling/blp_s_aclk_ext_tog_kernel_00]
+  connect_bd_net -net blp_logic_aclk_ext_tog_kernel_00 [get_bd_pins blp_logic/aclk_ext_tog_kernel_00] [get_bd_pins ulp_m_aclk_ext_tog_kernel_00]
+  connect_bd_net -net blp_logic_aclk_ext_tog_kernel_01 [get_bd_pins blp_logic/aclk_ext_tog_kernel_01] [get_bd_pins dfx_decoupling/blp_s_aclk_ext_tog_kernel_01]
+  connect_bd_net -net blp_logic_aclk_ext_tog_kernel_01 [get_bd_pins blp_logic/aclk_ext_tog_kernel_01] [get_bd_pins ulp_m_aclk_ext_tog_kernel_01]
   connect_bd_net -net blp_logic_aresetn_ext_tog_kernel_00 [get_bd_pins blp_logic/aresetn_ext_tog_kernel_00] [get_bd_pins dfx_decoupling/blp_s_aresetn_ext_tog_kernel_00]
   connect_bd_net -net blp_logic_aresetn_ext_tog_kernel_01 [get_bd_pins blp_logic/aresetn_ext_tog_kernel_01] [get_bd_pins dfx_decoupling/blp_s_aresetn_ext_tog_kernel_01]
   connect_bd_net -net blp_logic_clk_kernel0 [get_bd_pins blp_logic/clk_kernel0] [get_bd_pins ulp_m_aclk_kernel_00]
@@ -2296,18 +2289,18 @@ proc create_hier_cell_blp { parentCell nameHier} {
   connect_bd_net -net cips_fpd_cci_noc_axi3_clk [get_bd_pins cips/fpd_cci_noc_axi2_clk] [get_bd_pins axi_noc_ic/aclk3]
   connect_bd_net -net cips_fpd_cci_noc_axi4_clk [get_bd_pins cips/fpd_cci_noc_axi3_clk] [get_bd_pins axi_noc_ic/aclk4]
   connect_bd_net -net cips_lpd_axi_noc_axi6_clk [get_bd_pins cips/lpd_axi_noc_clk] [get_bd_pins axi_noc_ic/aclk6]
-  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins axi_noc_ic/aclk7] -boundary_type upper
-  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins ulp_m_aclk_ctrl_00] -boundary_type upper
-  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins blp_logic/clk_pl_axi] -boundary_type upper
-  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins cips/m_axi_fpd_aclk] -boundary_type upper
-  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins cips/m_axi_lpd_aclk] -boundary_type upper
-  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins dfx_decoupling/blp_s_aclk_ctrl_00] -boundary_type upper
+  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins axi_noc_ic/aclk7]
+  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins ulp_m_aclk_ctrl_00]
+  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins blp_logic/clk_pl_axi]
+  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins cips/m_axi_fpd_aclk]
+  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins cips/m_axi_lpd_aclk]
+  connect_bd_net -net cips_pl0_ref_clk [get_bd_pins cips/pl0_ref_clk] [get_bd_pins dfx_decoupling/blp_s_aclk_ctrl_00]
   connect_bd_net -net cips_pl0_resetn [get_bd_pins cips/pl0_resetn] [get_bd_pins blp_logic/resetn_pl_axi]
   connect_bd_net -net cips_pl1_ref_clk [get_bd_pins cips/pl1_ref_clk] [get_bd_pins blp_logic/clk_pl_ref]
   connect_bd_net -net cips_pl_pcie_resetn [get_bd_pins cips/pl_pcie0_resetn] [get_bd_pins qdma_0_support/sys_reset]
   connect_bd_net -net cips_pmc_axi_noc_axi5_clk [get_bd_pins cips/pmc_axi_noc_axi0_clk] [get_bd_pins axi_noc_ic/aclk5]
-  connect_bd_net -net const_vcc_dout [get_bd_pins const_vcc/dout] [get_bd_pins qdma_0/tm_dsc_sts_rdy] -boundary_type upper
-  connect_bd_net -net const_vcc_dout [get_bd_pins const_vcc/dout] [get_bd_pins qdma_0/qsts_out_rdy] -boundary_type upper
+  connect_bd_net -net const_vcc_dout [get_bd_pins const_vcc/dout] [get_bd_pins qdma_0/tm_dsc_sts_rdy]
+  connect_bd_net -net const_vcc_dout [get_bd_pins const_vcc/dout] [get_bd_pins qdma_0/qsts_out_rdy]
   connect_bd_net -net dfx_decoupling_blp_m_ext_tog_ctrl_kernel_00_enable [get_bd_pins dfx_decoupling/blp_m_ext_tog_ctrl_kernel_00_enable] [get_bd_pins blp_logic/ext_tog_ctrl_kernel_00_enable]
   connect_bd_net -net dfx_decoupling_blp_m_ext_tog_ctrl_kernel_00_in [get_bd_pins dfx_decoupling/blp_m_ext_tog_ctrl_kernel_00_in] [get_bd_pins blp_logic/ext_tog_ctrl_kernel_00_in]
   connect_bd_net -net dfx_decoupling_blp_m_ext_tog_ctrl_kernel_01_enable [get_bd_pins dfx_decoupling/blp_m_ext_tog_ctrl_kernel_01_enable] [get_bd_pins blp_logic/ext_tog_ctrl_kernel_01_enable]
@@ -2320,22 +2313,22 @@ proc create_hier_cell_blp { parentCell nameHier} {
   connect_bd_net -net force_reset_and_0_Res [get_bd_pins force_reset_and_0/Res] [get_bd_pins blp_logic/force_reset_result]
   connect_bd_net -net force_reset_concat_0_dout [get_bd_pins force_reset_concat_0/dout] [get_bd_pins force_reset_and_0/Op1]
   connect_bd_net -net force_reset_not_0_Res [get_bd_pins force_reset_not_0/Res] [get_bd_pins force_reset_concat_0/In1]
-  connect_bd_net -net qdma_0_pcie_noc_axi_clk [get_bd_pins qdma_0/axi_aclk] [get_bd_pins qdma_0_smc/aclk] -boundary_type upper
-  connect_bd_net -net qdma_0_pcie_noc_axi_clk [get_bd_pins qdma_0/axi_aclk] [get_bd_pins axi_noc_ic/aclk8] -boundary_type upper
+  connect_bd_net -net qdma_0_pcie_noc_axi_clk [get_bd_pins qdma_0/axi_aclk] [get_bd_pins qdma_0_smc/aclk]
+  connect_bd_net -net qdma_0_pcie_noc_axi_clk [get_bd_pins qdma_0/axi_aclk] [get_bd_pins axi_noc_ic/aclk8]
   connect_bd_net -net qdma_0_support_phy_rdy_out [get_bd_pins qdma_0_support/phy_rdy_out] [get_bd_pins qdma_0/phy_rdy_out_sd]
   connect_bd_net -net qdma_0_support_user_lnk_up [get_bd_pins qdma_0_support/user_lnk_up] [get_bd_pins qdma_0/user_lnk_up_sd]
   connect_bd_net -net qdma_0_support_user_reset [get_bd_pins qdma_0_support/user_reset] [get_bd_pins qdma_0/user_reset_sd]
   connect_bd_net -net qdma_0_usr_irq_out_ack [get_bd_pins qdma_0/usr_irq_out_ack] [get_bd_pins blp_logic/irq_ack]
   connect_bd_net -net qdma_0_usr_irq_out_fail [get_bd_pins qdma_0/usr_irq_out_fail] [get_bd_pins blp_logic/irq_fail]
-  connect_bd_net -net qdma_axi_aresetn [get_bd_pins qdma_0/axi_aresetn] [get_bd_pins blp_logic/resetn_pcie] -boundary_type upper
-  connect_bd_net -net qdma_axi_aresetn [get_bd_pins qdma_0/axi_aresetn] [get_bd_pins force_reset_not_0/Op1] -boundary_type upper
-  connect_bd_net -net qdma_axi_aresetn [get_bd_pins qdma_0/axi_aresetn] [get_bd_pins qdma_0_smc/aresetn] -boundary_type upper
-  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins blp_logic/clk_pcie] -boundary_type upper
-  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins ulp_m_aclk_pcie_00] -boundary_type upper
-  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins blp_logic/clk_pl_pcie] -boundary_type upper
-  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins dfx_decoupling/clk_pl_pcie] -boundary_type upper
-  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins axi_noc_ic/aclk0] -boundary_type upper
-  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins qdma_0/user_clk_sd] -boundary_type upper
+  connect_bd_net -net qdma_axi_aresetn [get_bd_pins qdma_0/axi_aresetn] [get_bd_pins blp_logic/resetn_pcie]
+  connect_bd_net -net qdma_axi_aresetn [get_bd_pins qdma_0/axi_aresetn] [get_bd_pins force_reset_not_0/Op1]
+  connect_bd_net -net qdma_axi_aresetn [get_bd_pins qdma_0/axi_aresetn] [get_bd_pins qdma_0_smc/aresetn]
+  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins blp_logic/clk_pcie]
+  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins ulp_m_aclk_pcie_00]
+  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins blp_logic/clk_pl_pcie]
+  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins dfx_decoupling/clk_pl_pcie]
+  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins axi_noc_ic/aclk0]
+  connect_bd_net -net qdma_pcie_user_clk [get_bd_pins qdma_0_support/user_clk] [get_bd_pins qdma_0/user_clk_sd]
   connect_bd_net -net resetn_pl_pcie_pr_net [get_bd_pins blp_logic/resetn_pl_pcie_pr] [get_bd_pins dfx_decoupling/blp_s_aresetn_pcie_reset_00]
   connect_bd_net -net resetn_pr_net [get_bd_pins blp_logic/resetn_pr] [get_bd_pins dfx_decoupling/blp_s_aresetn_pr_reset_00]
   connect_bd_net -net ulp_s_dbg_hub_fw_00_1 [get_bd_pins ulp_s_dbg_hub_fw_00] [get_bd_pins dfx_decoupling/ulp_s_dbg_hub_fw_00]
@@ -2539,7 +2532,7 @@ proc create_root_design { parentCell} {
   assign_bd_address -offset 0x020102000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S0_AXI/S0_AXI_Reg] -force
   assign_bd_address -offset 0x020202000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S1_AXI/S1_AXI_Reg] -force
   assign_bd_address -offset 0x020107000000 -range 0x00004000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/qdma_0/S_AXI_LITE_CSR/CTL0] -force
-  assign_bd_address -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/uuid_rom/S_AXI/reg0] -force
+  assign_bd_address -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/blp_logic/uuid_register/S_AXI/reg0] -force
 
   # Exclude Address Segments
   exclude_bd_addr_seg -offset 0x020102021000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/FPD_CCI_NOC_0] [get_bd_addr_segs blp/blp_logic/axi_uart_mgmt_apu0/S_AXI/Reg]
@@ -2590,7 +2583,7 @@ proc create_root_design { parentCell} {
   exclude_bd_addr_seg -offset 0x020102001000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/hw_discovery/s_axi_ctrl_pf0/reg0]
   exclude_bd_addr_seg -offset 0x020102000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S0_AXI/S0_AXI_Reg]
   exclude_bd_addr_seg -offset 0x020107000000 -range 0x00004000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/qdma_0/S_AXI_LITE_CSR/CTL0]
-  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/uuid_rom/S_AXI/reg0]
+  exclude_bd_addr_seg -offset 0x020102002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/cips/PMC_NOC_AXI_0] [get_bd_addr_segs blp/blp_logic/uuid_register/S_AXI/reg0]
   exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces blp/qdma_0/M_AXI_BRIDGE] [get_bd_addr_segs blp/axi_noc_mc_1x/S06_INI/C3_DDR_CH1]
   exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces ulp/axi_vip_0/Master_AXI] [get_bd_addr_segs blp/axi_noc_mc_1x/S04_INI/C1_DDR_LOW0]
   exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces ulp/axi_vip_1/Master_AXI] [get_bd_addr_segs blp/axi_noc_mc_1x/S05_INI/C2_DDR_LOW0]
@@ -2628,7 +2621,7 @@ proc create_root_design { parentCell} {
   set_property PFM.XRT_ENDPOINT \
     [dict create \
       S_AXI ep_blp_rom_00 \
-    ] [get_bd_cells /blp/blp_logic/uuid_rom]
+    ] [get_bd_cells /blp/blp_logic/uuid_register]
 
   set_property PFM.XRT_ENDPOINT \
     [dict create \

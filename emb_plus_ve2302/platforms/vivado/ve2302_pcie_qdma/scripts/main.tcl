@@ -18,7 +18,6 @@ set xdc_list {./xdc/impl.xdc ./xdc/pcie.xdc ./xdc/lpddr_dual_ch_bk.xdc ./xdc/pbl
 set ip_repo_path {./ip}
 set jobs 8
 set silicon prod
-set uuid 0000000000000000000000009447ee7c
 
 # parse arguments
 for { set i 0 } { $i < $argc } { incr i } {
@@ -31,11 +30,6 @@ for { set i 0 } { $i < $argc } { incr i } {
   if { [lindex $argv $i] == "-silicon" } {
     incr i
     set silicon [lindex $argv $i]
-  }
-  # uuid
-  if { [lindex $argv $i] == "-uuid" } {
-    incr i
-    set uuid [lindex $argv $i]
   }
 }
 

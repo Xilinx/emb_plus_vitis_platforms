@@ -25,6 +25,7 @@ def logCommitIDs() {
         echo -n "paeg-helper : " >> ${idfile}
         git rev-parse HEAD >> ${idfile}
         popd
+        echo "vivado : $(which vivado)" >> ${idfile}
         cat ${idfile}
         if [ -d "${DEPLOY_DIR}" ]; then
             cp ${idfile} ${DEPLOY_DIR}

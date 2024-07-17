@@ -25,7 +25,7 @@ def logCommitIDs() {
         echo -n "paeg-helper : " >> ${idfile}
         git rev-parse HEAD >> ${idfile}
         popd
-        echo "vivado : $(which vivado)" >> ${idfile}
+        echo "vivado : ${tool_release}_${tool_build}" >> ${idfile}
         cat ${idfile}
         if [ -d "${DEPLOY_DIR}" ]; then
             cp ${idfile} ${DEPLOY_DIR}
@@ -47,7 +47,7 @@ def buildPlatform() {
     sh label: 'platform build',
     script: '''
         pushd ${work_dir}/${board}
-        source ${setup} -r ${tool_release} && set -e
+        source ${setup} -r ${tool_release} -b ${tool_build} && set -e
         ${lsf} make platform PFM=${pfm_base} SILICON=${silicon} JOBS=32
         popd
     '''
@@ -77,7 +77,7 @@ def deployPlatformFirmware() {
         mkdir -p tmp
         unzip platforms/${pfm}/hw/${pfm_name}.xsa -d tmp
         pushd tmp
-        source ${setup} -r ${tool_release} && set -e
+        source ${setup} -r ${tool_release} -b ${tool_build} && set -e
         echo "all: { ${pfm_name}.bit }" > bootgen.bif
         bootgen -arch zynqmp -process_bitstream bin -image bootgen.bif
         popd
@@ -112,7 +112,7 @@ def buildOverlay() {
             echo "No valid platform found: ${pfm}"
             exit 1
         fi
-        source ${setup} -r ${tool_release} && set -e
+        source ${setup} -r ${tool_release} -b ${tool_build} && set -e
         bsub -R "select[osdistro==ubuntu]" -R "rusage[mem=${PAEG_LSF_MEM}]" -Is -q sil_ssw \
             make overlay OVERLAY=${overlay} SILICON=${silicon}
         popd
@@ -187,7 +187,7 @@ pipeline {
     environment {
         deploy_branch="main"
         tool_release="2024.2"
-        tool_build="daily_latest"
+        tool_build=sh(script: "readlink /proj/xbuilds/${env.tool_release}_daily_latest | sed -r 's/${env.tool_release}_(.*)/\\1/'", returnStdout: true)
         auto_branch="2022.1"
         pfm_ver="202420_1"
         ws="${WORKSPACE}"

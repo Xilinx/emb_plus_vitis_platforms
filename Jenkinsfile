@@ -167,10 +167,23 @@ def cleanDeployDir() {
                 if [[ \\$cnt -gt $DEPLOY_MAX ]]; then
                     dcnt=\\$((\\$cnt-$DEPLOY_MAX))
                     # delete old build artifacts, retain DEPLOY_MAX most recent
-                    list=( \\$(find $DEPLOY_BASE_DIR -maxdepth 1 -mindepth 1 -type d -exec ls -trd1 {} + | head -n \\$dcnt) )
-                    for i in "\\${list[@]}"; do
-                        echo "Delete build output folder \\$i"
-                        rm -rf \\$i
+                    dlist=( \\$(find $DEPLOY_BASE_DIR -maxdepth 1 -mindepth 1 -type d -exec ls -trd1 {} + | head -n \\$dcnt) )
+                    llist=( \\$(find $DEPLOY_BASE_DIR -maxdepth 1 -mindepth 1 -type l -printf "%l\\n") )
+                    for d in "\\${dlist[@]}"; do
+                        islink=0
+                        for l in "\\${llist[@]}"; do
+                            dbase=\\$(basename "\\$d")
+                            if [ "\\$dbase" = "\\$l" ]; then
+                                islink=1
+                                break
+                            fi
+                        done
+                        if [ \\$islink -eq 1 ]; then
+                            echo "Retain build output folder \\$d because it is symlinked"
+                        else
+                            echo "Delete build output folder \\$d"
+                            rm -rf \\$d
+                        fi
                     done
                 else
                     echo "Number of build output folders not greater than $DEPLOY_MAX: \\$cnt"

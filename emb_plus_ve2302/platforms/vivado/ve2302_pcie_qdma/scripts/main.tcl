@@ -14,7 +14,7 @@ set board rave_ve2302
 set bd_tcl_dir ./scripts
 set output_dir ./xsa
 set output {xsa}
-set xdc_list {./xdc/impl.xdc ./xdc/pcie.xdc ./xdc/lpddr_dual_ch_bk.xdc ./xdc/pblock.xdc }
+set xdc_list {./xdc/impl.xdc ./xdc/pcie.xdc ./xdc/pblock.xdc }
 set ip_repo_path {./ip}
 set jobs 8
 set silicon prod
@@ -41,8 +41,10 @@ if {$silicon == "es1"} {
   set proj_name ve2302_pcie_qdma
 }
 
+set proj_board [get_board_parts "*:emb-plus-vpr-4616:*" -latest_file_version]
+
 create_project -name $proj_name -force -dir $proj_dir -part $part
-#set_property board_part $proj_board [current_project]
+set_property board_part $proj_board [current_project]
 
 import_files -fileset constrs_1 $xdc_list
 
@@ -143,4 +145,3 @@ write_hw_platform -force -hw -rp ${proj_name}_i/${userBD} ${proj_dir}/${proj_nam
 validate_hw_platform -verbose ${proj_dir}/${proj_name}.xsa
 
 exit
-

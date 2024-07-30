@@ -27,9 +27,10 @@ def logCommitIDs() {
         popd
         echo "vivado : ${tool_release}_${tool_build}" >> ${idfile}
         cat ${idfile}
-        if [ -d "${DEPLOY_DIR}" ]; then
-            cp ${idfile} ${DEPLOY_DIR}
-        fi
+        for host in ${HOSTS[@]} ; do
+            ssh ${host} mkdir -p ${DEPLOY_DIR}
+            rsync -avhzP ${idfile} ${DEPLOY_DIR}
+        done
     '''
 }
 

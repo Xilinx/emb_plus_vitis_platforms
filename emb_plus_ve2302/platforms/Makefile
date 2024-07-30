@@ -27,6 +27,9 @@ PFM_XPFM = $(PFM_DIR)/$(VIV_DESIGN).xpfm
 VIV_DIR = vivado/$(PLATFORM)
 VIV_XSA_NAME = $(VIV_DESIGN)
 VIV_XSA = $(VIV_DIR)/project/$(VIV_XSA_NAME).xsa
+VIV_SDT = project_sdt
+VIV_BASE_XSA = $(VIV_DIR)/project/$(VIV_DESIGN)_base.xsa
+XSCT_SRC = $(PFM_SCRIPTS_DIR)/gen_sdt.tcl
 
 .PHONY: help
 help:
@@ -34,6 +37,9 @@ help:
 	@echo ''
 	@echo '  make platform [PLATFORM=<p>] [SILICON=<es1,prod>] [VERSION=<v>]'
 	@echo '    Generate Vitis platform'
+	@echo ''
+	@echo '  make sdt [PLATFORM=<p>] [SILICON=<es1,prod>] [VERSION=<v>]'
+	@echo '    Generate SDT file for base xsa'
 	@echo ''
 	@echo '  make clean [PLATFORM=<p>] [SILICON=<es1,prod>] [VERSION=<v>]'
 	@echo '    Clean files and directories for specified platform'
@@ -46,7 +52,7 @@ help:
 
 
 .PHONY: all
-all: platform
+all: platform sdt
 
 .PHONY: platform
 platform: $(PFM_XPFM)
@@ -57,11 +63,17 @@ $(PFM_XPFM): $(VIV_XSA)
 	@$(MV) $(PFM_DIR)/*.xpfm $(PFM_DIR)/$(VIV_DESIGN).xpfm
 	@echo 'Vitis platform available at $(PFM_DIR)'
 
+.PHONY: sdt
+sdt: $(VIV_SDT)
+$(VIV_SDT): $(VIV_BASE_XSA)
+	$(XSCT) $(XSCT_SRC) -xsa_path $(VIV_BASE_XSA)
+
+$(VIV_BASE_XSA): $(VIV_XSA)
 $(VIV_XSA):
 	make -C $(VIV_DIR) xsa JOBS=$(JOBS) SILICON=$(SILICON)
 
 .PHONY: clean
 clean:
-	-@$(RM) .Xil boot image linux.bif ws $(PFM_DIR) xsct
+	-@$(RM) .Xil boot image linux.bif ws $(PFM_DIR) xsct $(VIV_SDT)
 	make -C $(VIV_DIR) clean
 

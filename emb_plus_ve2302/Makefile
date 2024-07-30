@@ -91,8 +91,8 @@ $(PFM_XPFM):
 	  echo 'Invalid parameter PFM=$(PFM). Choose one of: $(PFM_LIST)'; \
 	  exit 1; \
 	fi; \
-	echo 'Create Vitis platform $(PFM_NAME)'; \
-	$(MAKE) -C $(PFM_DIR) platform PLATFORM=$(PFM) VERSION=$(PFM_VER) SILICON=$(SILICON)
+	echo 'Create Vitis platform $(PFM_NAME) and SDT'; \
+	$(MAKE) -C $(PFM_DIR) all PLATFORM=$(PFM) VERSION=$(PFM_VER) SILICON=$(SILICON)
 
 .PHONY: clean
 clean:

@@ -228,6 +228,11 @@ pipeline {
     }
     stages {
         stage('Clone Repos') {
+            when {
+                not {
+                    triggeredBy 'BranchIndexingCause'
+                }
+            }
             steps {
                 // checkout main source repo
                 checkout([
@@ -260,6 +265,11 @@ pipeline {
             }
         }
         stage('Create Build Directories') {
+            when {
+                not {
+                    triggeredBy 'BranchIndexingCause'
+                }
+            }
             parallel {
                 stage('ve2302_pcie_qdma')  {
                     environment {
@@ -612,7 +622,12 @@ pipeline {
     }
     post {
         always {
-            logCommitIDs()
+            script {
+                def isBranchIndexingCause = currentBuild.getBuildCauses('jenkins.branch.BranchIndexingCause').size()
+                if (isBranchIndexingCause != 1) {
+                    logCommitIDs()
+                }
+            }
         }
         success {
             updateDeploySuccess()

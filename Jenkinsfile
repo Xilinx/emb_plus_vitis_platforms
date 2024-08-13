@@ -29,7 +29,7 @@ def logCommitIDs() {
         cat ${idfile}
         for host in ${HOSTS[@]} ; do
             ssh ${host} mkdir -p ${DEPLOY_DIR}
-            rsync -avhzP ${idfile} ${DEPLOY_DIR}
+            rsync -avhzP ${idfile} ${host}:${DEPLOY_DIR}
         done
     '''
 }

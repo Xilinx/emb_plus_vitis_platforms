@@ -29,7 +29,7 @@ def logCommitIDs() {
         cat ${idfile}
         for host in ${HOSTS[@]} ; do
             ssh ${host} mkdir -p ${DEPLOY_DIR}
-            rsync -avhzP ${idfile} ${DEPLOY_DIR}
+            rsync -avhzP ${idfile} ${host}:${DEPLOY_DIR}
         done
     '''
 }
@@ -164,7 +164,7 @@ def cleanDeployDir() {
     script: '''
         for host in ${HOSTS[@]} ; do
             ssh ${host} /bin/bash -x << EOF
-                cnt=\$(find $DEPLOY_BASE_DIR -maxdepth 1 -mindepth 1 -type d | wc -l)
+                cnt=\\$(find $DEPLOY_BASE_DIR -maxdepth 1 -mindepth 1 -type d | wc -l)
                 if [[ \\$cnt -gt $DEPLOY_MAX ]]; then
                     dcnt=\\$((\\$cnt-$DEPLOY_MAX))
                     # delete old build artifacts, retain DEPLOY_MAX most recent

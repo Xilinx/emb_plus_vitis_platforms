@@ -61,10 +61,10 @@ def deployPlatform() {
         if [ "${silicon}" != "prod" ]; then
             board=${board}-${silicon}
         fi
-        DSTDIR=${DEPLOY_DIR}/${board}
+        DSTDIR=${DEPLOY_DIR}/${board}/${pfm}
         for host in ${HOSTS[@]} ; do
-            ssh ${host} mkdir -p ${DSTDIR}/${pfm}
-            rsync -avhzP --delete platforms/${pfm}/ ${host}:${DSTDIR}/${pfm}/
+            ssh ${host} mkdir -p ${DSTDIR}
+            rsync -avhzP --delete platforms/${pfm}/ ${host}:${DSTDIR}/
         done
         popd
     '''

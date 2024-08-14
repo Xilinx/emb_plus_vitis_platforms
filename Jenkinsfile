@@ -70,6 +70,23 @@ def deployPlatform() {
     '''
 }
 
+def deployPlatformSdt() {
+    sh label: 'platform SDT deploy',
+    script: '''
+        pushd ${work_dir}/${board}
+        board=$(echo ${board} | tr _ -)
+        if [ "${silicon}" != "prod" ]; then
+            board=${board}-${silicon}
+        fi
+        DSTDIR=${DEPLOY_DIR}/${board}/sdt
+        for host in ${HOSTS[@]} ; do
+            ssh ${host} mkdir -p ${DSTDIR}
+            rsync -avhzP --delete platforms/project_sdt/ ${host}:${DSTDIR}/
+        done
+        popd
+    '''
+}
+
 def deployPlatformFirmware() {
     sh label: 'platform firmware deploy',
     script: '''
@@ -309,6 +326,7 @@ pipeline {
                                 env.VE2302_PFM_SUCCESS = '1'
                             }
                             deployPlatform()
+                            deployPlatformSdt()
                         }
                     }
                 }
@@ -339,6 +357,7 @@ pipeline {
                                 env.VE2302_ES1_PFM_SUCCESS = '1'
                             }
                             deployPlatform()
+                            deployPlatformSdt()
                         }
                     }
                 }

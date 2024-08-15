@@ -104,11 +104,15 @@ def buildOverlay() {
     sh label: 'overlay build',
     script: '''
         pushd ${work_dir}/${board}
+        board=$(echo ${board} | tr _ -)
+        if [ "${silicon}" != "prod" ]; then
+            board=${board}-${silicon}
+        fi
         if [ -d platforms/${pfm} ]; then
             echo "Using platform from local build"
-        elif [ -d ${DEPLOY_PFM_DIR}/${pfm} ]; then
+        elif [ -d ${DEPLOY_PFM_DIR}/${board}/${pfm} ]; then
             echo "Using platform from build artifacts"
-            ln -s ${DEPLOY_PFM_DIR}/${pfm} platforms/
+            ln -s ${DEPLOY_PFM_DIR}/${board}/${pfm} platforms/
         else
             echo "No valid platform found: ${pfm}"
             exit 1
@@ -216,7 +220,7 @@ pipeline {
         YOCTO_BASE_DIR="/proj/yocto/rave_artifacts/${tool_release}/hw"
         DEPLOY_BASE_DIR="${env.BRANCH_NAME == env.deploy_branch ? env.YOCTO_BASE_DIR : env.PAEG_BASE_DIR}"
         DEPLOY_DIR="${DEPLOY_BASE_DIR}/${BUILD_ID}"
-        DEPLOY_PFM_DIR="${YOCTO_BASE_DIR}/daily_latest/platforms"
+        DEPLOY_PFM_DIR="${YOCTO_BASE_DIR}/daily_latest"
         DEPLOY_MAX=15
     }
     options {

@@ -54,6 +54,22 @@ def buildPlatform() {
     '''
 }
 
+def deployBaseXSA() {
+    sh label: 'base XSA deploy',
+    script: '''
+        basexsa=${work_dir}/${board}/platforms/vivado/${pfm_base}/project/${pfm_name}_base.xsa
+        board=$(echo ${board} | tr _ -)
+        if [ "${silicon}" != "prod" ]; then
+            board=${board}-${silicon}
+        fi
+        DSTDIR=${DEPLOY_DIR}/${board}
+        for host in ${HOSTS[@]} ; do
+            ssh ${host} mkdir -p ${DSTDIR}
+            rsync -avhzP ${basexsa} ${host}:${DSTDIR}
+        done
+    '''
+}
+
 def deployPlatform() {
     sh label: 'platform deploy',
     script: '''
@@ -340,6 +356,7 @@ pipeline {
                             script {
                                 env.VE2302_PFM_SUCCESS = '1'
                             }
+                            deployBaseXSA()
                             deployPlatform()
                             deployPlatformSdt()
                         }
@@ -371,6 +388,7 @@ pipeline {
                             script {
                                 env.VE2302_ES1_PFM_SUCCESS = '1'
                             }
+                            deployBaseXSA()
                             deployPlatform()
                             deployPlatformSdt()
                         }

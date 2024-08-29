@@ -152,7 +152,7 @@ The following are the commands:
 tar -xf xilinx_ve2302_pcie_qdma_<*>.tar.gz
 cp xilinx_ve2302_pcie_qdma_202320_1/ emb_plus_vitis_platforms/emb_plus_ve2302/platforms/ -rf
 cd emb_plus_vitis_platforms/emb_plus_ve2302/
-make overlay OVERLAY=<overlay_name>
+make platform PFM=<platform_name> overlay OVERLAY=<overlay_name>
 ```
 
 

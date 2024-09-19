@@ -259,6 +259,8 @@ pipeline {
     options {
         // don't let the implicit checkout happen
         skipDefaultCheckout true
+        // keep logs for last 20 builds
+        buildDiscarder(logRotator(numToKeepStr: '20'))
     }
     triggers {
         cron(env.BRANCH_NAME == 'main' ? 'H 21 * * *' : '')

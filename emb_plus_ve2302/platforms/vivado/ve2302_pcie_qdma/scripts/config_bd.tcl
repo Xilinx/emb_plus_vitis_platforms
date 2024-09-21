@@ -1932,7 +1932,7 @@ connect_bd_intf_net [get_bd_intf_pins ch1_lpddr4_trip1] [get_bd_intf_pins axi_no
     CONFIG.axi_data_width {256_bit} \
     CONFIG.axibar_notranslate {false} \
     CONFIG.axist_bypass_en {true} \
-    CONFIG.axisten_freq {125} \
+    CONFIG.axisten_freq {250} \
     CONFIG.barlite_mb_pf1 {0} \
     CONFIG.copy_pf0 {false} \
     CONFIG.csr_axilite_slave {true} \

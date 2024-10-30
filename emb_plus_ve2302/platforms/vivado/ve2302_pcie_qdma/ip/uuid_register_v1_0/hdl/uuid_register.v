@@ -602,7 +602,7 @@ module uuid_register #
     if ( S_AXI_ARESETN == 1'b0 )
       begin
         s01_axi_arready <= 1'b0;
-        s00_axi_araddr  <= 32'b0;
+        s01_axi_araddr  <= 32'b0;
       end
     else
       begin

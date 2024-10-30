@@ -550,11 +550,12 @@ proc create_root_design { parentCell } {
   set_property -dict [list \
     CONFIG.NUM_CLKS {0} \
     CONFIG.NUM_MI {0} \
-    CONFIG.NUM_NMI {3} \
+    CONFIG.NUM_NMI {2} \
     CONFIG.NUM_NSI {0} \
     CONFIG.NUM_SI {0} \
   ] $axi_noc_kernel0
 
+  set_property HDL_ATTRIBUTE.DPA_TRACE_SLAVE {true} $axi_noc_kernel0
 
   set_property -dict [ list \
    CONFIG.INI_STRATEGY {load} \
@@ -565,11 +566,6 @@ proc create_root_design { parentCell } {
    CONFIG.INI_STRATEGY {load} \
    CONFIG.APERTURES {{0x500_0000_0000 6G}} \
  ] [get_bd_intf_pins /axi_noc_kernel0/M01_INI]
-
-  set_property -dict [ list \
-   CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
- ] [get_bd_intf_pins /axi_noc_kernel0/M02_INI]
 
   # Create instance: kernel_interrupt
   create_hier_cell_kernel_interrupt [current_bd_instance .] kernel_interrupt
@@ -631,7 +627,7 @@ proc create_root_design { parentCell } {
   ] $axi_noc_h2c
 
   set_property -dict [ list \
-   CONFIG.APERTURES {{0x202_0000_0000 32M}} \
+   CONFIG.APERTURES {{0x202_0000_0000 1G}} \
    CONFIG.CATEGORY {pl} \
  ] [get_bd_intf_pins /axi_noc_h2c/M00_AXI]
 
@@ -643,16 +639,33 @@ proc create_root_design { parentCell } {
    CONFIG.ASSOCIATED_BUSIF {M00_AXI} \
  ] [get_bd_pins /axi_noc_h2c/aclk0]
 
+  # Create instance: axi_noc_kernel1, and set properties
+  set axi_noc_kernel1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_noc axi_noc_kernel1 ]
+  set_property -dict [list \
+    CONFIG.NUM_CLKS {0} \
+    CONFIG.NUM_MI {0} \
+    CONFIG.NUM_NMI {1} \
+    CONFIG.NUM_NSI {0} \
+    CONFIG.NUM_SI {0} \
+  ] $axi_noc_kernel1
+
+  set_property HDL_ATTRIBUTE.DPA_TRACE_SLAVE {true} $axi_noc_kernel1
+
+  set_property -dict [ list \
+   CONFIG.INI_STRATEGY {load} \
+   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
+ ] [get_bd_intf_pins /axi_noc_kernel1/M00_INI]
+
   # Create interface connections
   connect_bd_intf_net -intf_net BLP_S_AXI_CTRL_USER_00_1 [get_bd_intf_ports BLP_S_AXI_CTRL_USER_00] [get_bd_intf_pins axi_ic_user/S00_AXI]
   connect_bd_intf_net -intf_net BLP_S_INI_AIE_00_1 [get_bd_intf_ports BLP_S_INI_AIE_00] [get_bd_intf_pins axi_noc_aie_prog/S00_INI]
   connect_bd_intf_net -intf_net M00_INI_0 [get_bd_intf_ports BLP_M_M00_INI_0] [get_bd_intf_pins axi_noc_kernel0/M00_INI]
   connect_bd_intf_net -intf_net M01_INI_0 [get_bd_intf_ports BLP_M_M01_INI_0] [get_bd_intf_pins axi_noc_kernel0/M01_INI]
-  connect_bd_intf_net -intf_net M02_INI_0 [get_bd_intf_ports BLP_M_M02_INI_0] [get_bd_intf_pins axi_noc_kernel0/M02_INI]
+  connect_bd_intf_net -intf_net S00_INI_0_1 [get_bd_intf_ports BLP_S_INI_DBG_00] [get_bd_intf_pins axi_noc_h2c/S00_INI]
   connect_bd_intf_net -intf_net axi_ic_user_M00_AXI [get_bd_intf_pins axi_ic_user/M00_AXI] [get_bd_intf_pins axi_gpio_null_user/S_AXI]
   connect_bd_intf_net -intf_net axi_noc_aie_prog_M00_AXI [get_bd_intf_pins axi_noc_aie_prog/M00_AXI] [get_bd_intf_pins ai_engine_0/S00_AXI]
   connect_bd_intf_net -intf_net axi_noc_h2c_M00_AXI [get_bd_intf_pins axi_dbg_hub/S_AXI] [get_bd_intf_pins axi_noc_h2c/M00_AXI]
-  connect_bd_intf_net -intf_net S00_INI_0_1 [get_bd_intf_ports BLP_S_INI_DBG_00] [get_bd_intf_pins axi_noc_h2c/S00_INI]
+  connect_bd_intf_net -intf_net axi_noc_kernel1_M00_INI [get_bd_intf_ports BLP_M_M02_INI_0] [get_bd_intf_pins axi_noc_kernel1/M00_INI]
 
   # Create port connections
   connect_bd_net -net ai_engine_0_s00_axi_aclk [get_bd_pins ai_engine_0/s00_axi_aclk] [get_bd_pins axi_noc_aie_prog/aclk0]
@@ -701,12 +714,9 @@ proc create_root_design { parentCell } {
   set_property PFM.CLOCK {blp_s_aclk_ctrl_00 {id "2" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_fixed" status "fixed" freq_hz "99999908"}} [get_bd_ports /blp_s_aclk_ctrl_00]
 
   set_property PFM.AXI_PORT {M01_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M02_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M03_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M04_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M05_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M06_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M07_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M08_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M09_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M10_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"}} [get_bd_cells /axi_ic_user]
-  set_property PFM.AXI_PORT {S00_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"} S01_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"} S02_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"}} [get_bd_cells /axi_noc_kernel0]
+  set_property PFM.AXI_PORT {S00_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"} S01_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"} S02_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"} S03_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"} S04_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"}} [get_bd_cells /axi_noc_kernel0]
+  set_property PFM.AXI_PORT {S00_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"} S01_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"} S02_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"} S03_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"} S04_AXI {memport "S_AXI_NOC" sptag "MC_NOC" memory "" is_range "true"}} [get_bd_cells /axi_noc_kernel1]
   set_property PFM.IRQ {In0 {id 0 range 32}} [get_bd_cells /kernel_interrupt/xlconcat_0]
-
-  # System DPA attributes
-  set_property HDL_ATTRIBUTE.DPA_AXILITE_MASTER primary [get_bd_cells /axi_ic_user]
-  set_property HDL_ATTRIBUTE.DPA_TRACE_SLAVE true [get_bd_cells /axi_noc_kernel0]
 
   # Used for metadata generation
   set_property HDL_ATTRIBUTE.DFX_FUNCTION_ID 0 [current_bd_design]

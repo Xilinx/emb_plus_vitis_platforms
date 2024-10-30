@@ -570,9 +570,9 @@ proc create_root_design { parentCell } {
   set_property -dict [list \
     CONFIG.NUM_CLKS {1} \
     CONFIG.NUM_MI {0} \
-    CONFIG.NUM_NMI {3} \
+    CONFIG.NUM_NMI {2} \
     CONFIG.NUM_NSI {0} \
-    CONFIG.NUM_SI {3} \
+    CONFIG.NUM_SI {2} \
   ] $axi_noc_kernel0
 
   set_property HDL_ATTRIBUTE.DPA_TRACE_SLAVE {true} [get_bd_cells axi_noc_kernel0]
@@ -588,11 +588,6 @@ proc create_root_design { parentCell } {
  ] [get_bd_intf_pins /axi_noc_kernel0/M01_INI]
 
   set_property -dict [ list \
-   CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
- ] [get_bd_intf_pins /axi_noc_kernel0/M02_INI]
-
-  set_property -dict [ list \
    CONFIG.CONNECTIONS {M00_INI {read_bw {500} write_bw {500}}} \
    CONFIG.NOC_PARAMS {} \
    CONFIG.CATEGORY {pl} \
@@ -605,13 +600,7 @@ proc create_root_design { parentCell } {
  ] [get_bd_intf_pins /axi_noc_kernel0/S01_AXI]
 
   set_property -dict [ list \
-   CONFIG.CONNECTIONS {M02_INI {read_bw {500} write_bw {500}}} \
-   CONFIG.NOC_PARAMS {} \
-   CONFIG.CATEGORY {pl} \
- ] [get_bd_intf_pins /axi_noc_kernel0/S02_AXI]
-
-  set_property -dict [ list \
-   CONFIG.ASSOCIATED_BUSIF {S00_AXI:S01_AXI:S02_AXI} \
+   CONFIG.ASSOCIATED_BUSIF {S00_AXI:S01_AXI} \
  ] [get_bd_pins /axi_noc_kernel0/aclk0]
 
   # Create instance: kernel_interrupt
@@ -676,7 +665,7 @@ proc create_root_design { parentCell } {
 
 
   set_property -dict [ list \
-   CONFIG.APERTURES {{0x202_0000_0000 32M}} \
+   CONFIG.APERTURES {{0x202_0000_0000 1G}} \
    CONFIG.CATEGORY {pl} \
  ] [get_bd_intf_pins /axi_noc_h2c/M00_AXI]
 
@@ -769,19 +758,46 @@ proc create_root_design { parentCell } {
   ] $axi_vip_2
 
 
+  # Create instance: axi_noc_kernel1, and set properties
+  set axi_noc_kernel1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_noc axi_noc_kernel1 ]
+  set_property -dict [list \
+    CONFIG.NUM_CLKS {1} \
+    CONFIG.NUM_MI {0} \
+    CONFIG.NUM_NMI {1} \
+    CONFIG.NUM_NSI {0} \
+    CONFIG.NUM_SI {1} \
+  ] $axi_noc_kernel1
+
+  set_property HDL_ATTRIBUTE.DPA_TRACE_SLAVE {true} [get_bd_cells axi_noc_kernel1]
+
+  set_property -dict [ list \
+   CONFIG.INI_STRATEGY {load} \
+   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
+ ] [get_bd_intf_pins /axi_noc_kernel1/M00_INI]
+
+  set_property -dict [ list \
+   CONFIG.CONNECTIONS {M00_INI {read_bw {500} write_bw {500}}} \
+   CONFIG.NOC_PARAMS {} \
+   CONFIG.CATEGORY {pl} \
+ ] [get_bd_intf_pins /axi_noc_kernel1/S00_AXI]
+
+  set_property -dict [ list \
+   CONFIG.ASSOCIATED_BUSIF {S00_AXI} \
+ ] [get_bd_pins /axi_noc_kernel1/aclk0]
+
   # Create interface connections
   connect_bd_intf_net -intf_net BLP_S_AXI_CTRL_USER_00_1 [get_bd_intf_ports BLP_S_AXI_CTRL_USER_00] [get_bd_intf_pins axi_ic_user/S00_AXI]
   connect_bd_intf_net -intf_net BLP_S_INI_AIE_00_1 [get_bd_intf_ports BLP_S_INI_AIE_00] [get_bd_intf_pins axi_noc_aie_prog/S00_INI]
   connect_bd_intf_net -intf_net M00_INI_0 [get_bd_intf_ports BLP_M_M00_INI_0] [get_bd_intf_pins axi_noc_kernel0/M00_INI]
   connect_bd_intf_net -intf_net M01_INI_0 [get_bd_intf_ports BLP_M_M01_INI_0] [get_bd_intf_pins axi_noc_kernel0/M01_INI]
-  connect_bd_intf_net -intf_net M02_INI_0 [get_bd_intf_ports BLP_M_M02_INI_0] [get_bd_intf_pins axi_noc_kernel0/M02_INI]
   connect_bd_intf_net -intf_net S00_INI_0_1 [get_bd_intf_ports BLP_S_INI_DBG_00] [get_bd_intf_pins axi_noc_h2c/S00_INI]
   connect_bd_intf_net -intf_net axi_ic_user_M00_AXI [get_bd_intf_pins axi_ic_user/M00_AXI] [get_bd_intf_pins axi_gpio_null_user/S_AXI]
   connect_bd_intf_net -intf_net axi_noc_aie_prog_M00_AXI [get_bd_intf_pins axi_noc_aie_prog/M00_AXI] [get_bd_intf_pins ai_engine_0/S00_AXI]
   connect_bd_intf_net -intf_net axi_noc_h2c_M00_AXI [get_bd_intf_pins axi_dbg_hub/S_AXI] [get_bd_intf_pins axi_noc_h2c/M00_AXI]
+  connect_bd_intf_net -intf_net axi_noc_kernel1_M00_INI [get_bd_intf_ports BLP_M_M02_INI_0] [get_bd_intf_pins axi_noc_kernel1/M00_INI]
   connect_bd_intf_net -intf_net axi_vip_0_M_AXI [get_bd_intf_pins axi_vip_0/M_AXI] [get_bd_intf_pins axi_noc_kernel0/S00_AXI]
   connect_bd_intf_net -intf_net axi_vip_1_M_AXI [get_bd_intf_pins axi_vip_1/M_AXI] [get_bd_intf_pins axi_noc_kernel0/S01_AXI]
-  connect_bd_intf_net -intf_net axi_vip_2_M_AXI [get_bd_intf_pins axi_vip_2/M_AXI] [get_bd_intf_pins axi_noc_kernel0/S02_AXI]
+  connect_bd_intf_net -intf_net axi_vip_2_M_AXI [get_bd_intf_pins axi_noc_kernel1/S00_AXI] [get_bd_intf_pins axi_vip_2/M_AXI]
 
   # Create port connections
   connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_0/aresetn]
@@ -798,6 +814,7 @@ proc create_root_design { parentCell } {
   connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_vip_1/aclk]
   connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_vip_2/aclk]
   connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_noc_kernel0/aclk0]
+  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_noc_kernel1/aclk0]
   connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_ports blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_pipe_ext_tog_kernel_00_null/clk]
   connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_ports blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_pipe_ext_tog_kernel_01_null/clk]
   connect_bd_net -net blp_s_aclk_kernel_00_1 [get_bd_ports blp_s_aclk_kernel_00] [get_bd_pins reset_controllers/clk_kernel0]

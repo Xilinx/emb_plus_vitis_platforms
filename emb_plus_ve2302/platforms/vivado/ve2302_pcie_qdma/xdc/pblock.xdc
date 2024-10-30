@@ -19,6 +19,15 @@ resize_pblock [get_pblocks pblock_ulp] -add {RAMB36_X0Y42:RAMB36_X2Y47}
 resize_pblock [get_pblocks pblock_ulp] -add {URAM288_X0Y42:URAM288_X2Y47}
 resize_pblock [get_pblocks pblock_ulp] -add {URAM_CAS_DLY_X0Y1:URAM_CAS_DLY_X2Y1}
 resize_pblock [get_pblocks pblock_ulp] -add {CLOCKREGION_X0Y4:CLOCKREGION_X3Y4 CLOCKREGION_X0Y3:CLOCKREGION_X2Y3}
+
+# Add more BRAMS & DSPs (increased BRAMS/URAMS to 68 total and routed)
+resize_pblock [get_pblocks pblock_ulp] -add {DSP58_CPLX_X1Y46:DSP58_CPLX_X1Y73 DSP_X2Y46:DSP_X3Y73 }
+resize_pblock [get_pblocks pblock_ulp] -add {RAMB18_X2Y48:RAMB18_X2Y75 RAMB36_X2Y24:RAMB36_X2Y37 }
+resize_pblock [get_pblocks pblock_ulp] -add {URAM288_X2Y24:URAM288_X2Y37 }
+# Add even more (increased BRAMS/URAMS to 81 total and routed)
+resize_pblock [get_pblocks pblock_ulp] -add {RAMB18_X0Y48:RAMB18_X0Y73 RAMB36_X0Y24:RAMB36_X0Y36 }
+resize_pblock [get_pblocks pblock_ulp] -add {URAM288_X0Y24:URAM288_X0Y36 }
+
 set_property SNAPPING_MODE ON [get_pblocks pblock_ulp]
 set_property DONT_TOUCH true [get_cells */ulp]
 
@@ -26,15 +35,3 @@ set_property DONT_TOUCH true [get_cells */ulp]
 # Lock NMU512 for blp
 set_property LOC NOC_NMU512_X0Y0 [get_cells */blp/axi_noc_ic/inst/S00_AXI_nmu/*/NOC_NMU512_INST]
 set_property LOC NOC_NMU512_X0Y1 [get_cells */blp/axi_noc_ic/inst/S07_AXI_nmu/*/NOC_NMU512_INST]
-
-
-set_property LOCK_PINS {I0:A1 I1:A2 I2:A3} [get_cells */blp/dfx_decoupling/s_ip_axi_ctrl_user_00/inst/ar.ar_pipe/m_valid_i_i_1__1]
-set_property LOCK_PINS {I0:A1 I1:A2 I2:A3 I3:A4} [get_cells */blp/dfx_decoupling/s_ip_axi_ctrl_user_00/inst/ar.ar_pipe/s_ready_i_i_1__2]
-set_property LOCK_PINS {I0:A1 I1:A2 I2:A3} [get_cells */blp/dfx_decoupling/s_ip_axi_ctrl_user_00/inst/aw.aw_pipe/m_valid_i_i_1]
-set_property LOCK_PINS {I0:A1 I1:A2 I2:A3 I3:A4} [get_cells */blp/dfx_decoupling/s_ip_axi_ctrl_user_00/inst/aw.aw_pipe/s_ready_i_i_2]
-set_property LOCK_PINS {I0:A1 I1:A2 I2:A3} [get_cells */blp/dfx_decoupling/s_ip_axi_ctrl_user_00/inst/b.b_pipe/m_valid_i_i_2]
-set_property LOCK_PINS {I0:A1 I1:A2 I2:A3 I3:A4} [get_cells */blp/dfx_decoupling/s_ip_axi_ctrl_user_00/inst/b.b_pipe/s_ready_i_i_1__1]
-set_property LOCK_PINS {I0:A1 I1:A2 I2:A3} [get_cells */blp/dfx_decoupling/s_ip_axi_ctrl_user_00/inst/r.r_pipe/m_valid_i_i_1__2]
-set_property LOCK_PINS {I0:A1 I1:A2 I2:A3 I3:A4} [get_cells */blp/dfx_decoupling/s_ip_axi_ctrl_user_00/inst/r.r_pipe/s_ready_i_i_1__3]
-set_property LOCK_PINS {I0:A1 I1:A2 I2:A3} [get_cells */blp/dfx_decoupling/s_ip_axi_ctrl_user_00/inst/w.w_pipe/m_valid_i_i_1__0]
-set_property LOCK_PINS {I0:A1 I1:A2 I2:A3 I3:A4} [get_cells */blp/dfx_decoupling/s_ip_axi_ctrl_user_00/inst/w.w_pipe/s_ready_i_i_1__0]

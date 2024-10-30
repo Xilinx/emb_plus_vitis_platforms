@@ -46,7 +46,7 @@ set proj_board [get_board_parts "*:emb-plus-vpr-4616:*" -latest_file_version]
 create_project -name $proj_name -force -dir $proj_dir -part $part
 set_property board_part $proj_board [current_project]
 
-import_files -fileset constrs_1 $xdc_list
+add_files -fileset constrs_1 $xdc_list
 
 set_property ip_repo_paths $ip_repo_path [current_project]
 update_ip_catalog
@@ -60,7 +60,8 @@ save_bd_design
 # Import constraint and hook files, and set their properties as required
 import_files -fileset utils_1   -norecurse "./scripts/opt.pre.tcl"
 set_property used_in_synthesis false          [get_files *impl*.xdc]
-set_property STEPS.OPT_DESIGN.TCL.PRE         [get_files *opt.pre.tcl]                [get_runs impl_1]
+set_property used_in_synthesis false          [get_files pblock.xdc]
+set_property STEPS.OPT_DESIGN.TCL.PRE         [get_files *opt.pre.tcl]  [get_runs impl_1]
 
 make_wrapper -files [get_files ${proj_name}.bd] -top
 import_files -force -norecurse $proj_dir/${proj_name}.srcs/sources_1/bd/${proj_name}/hdl/${proj_name}_wrapper.v

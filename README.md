@@ -98,10 +98,10 @@ ensure compatibility.
 To create the Vitis platform, run the following command from the ```emb_plus_ve2302/``` folder
 
 ```
-make platform PFM=<platform_name> [SILICON=<es1,prod>]
+make platform PFM=<platform_name>
 ```
 
-The default silicon version is Production.  Valid platforms are listed under Contents above.
+Valid platforms are listed under Contents above.
 
 The Makefile uses the XSA from the vivado project to generate a platform.
 The generated platform will be located at:
@@ -119,10 +119,10 @@ connect to.
 To create the platform and overlay, run the following command:
 
 ```
-make platform PFM=<platform_name> [SILICON=<es1,prod>] overlay OVERLAY=<overlay_name>
+make platform PFM=<platform_name> overlay OVERLAY=<overlay_name>
 ```
 
-The default for SILICON is Production (prod).  Valid platforms and overlays are listed under Contents above.
+Valid platforms and overlays are listed under Contents above.
 
 ### Generating Overlay from Released Platform
 

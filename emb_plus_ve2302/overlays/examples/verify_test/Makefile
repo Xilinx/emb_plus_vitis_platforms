@@ -39,16 +39,10 @@ VPP_LINK_FLAGS = -l -t hw --platform $(PLATFORM) --save-temps \
 XSA_FILE = $(KERNEL).xsa
 
 # deb package script location
-SILICON ?= prod
 MAINTAINER = AMD
 BOARD = ve2302
-ifeq ($(SILICON),es1)
-	BUILD_DIR = xrt-$(KERNEL)-test-$(BOARD)-$(SILICON)
-	DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma-$(SILICON)/base/test/
-else
-	BUILD_DIR = xrt-$(KERNEL)-test-$(BOARD)
-	DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
-endif
+BUILD_DIR = xrt-$(KERNEL)-test-$(BOARD)
+DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
 
 VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
 ULP_CONFIG = $(VIV_DIR)/scripts/ulp.tcl

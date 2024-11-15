@@ -7,15 +7,9 @@ RM = rm -rf
 MV = mv
 XSCT = $(XILINX_VITIS)/bin/xsct
 JOBS ?= 8
-SILICON ?= prod
 PLATFORM ?= ve2302_pcie_qdma
 VERSION ?= 202410_1
-
-ifeq ($(SILICON), es1)
-  VIV_DESIGN = ve2302_es1_pcie_qdma
-else
-  VIV_DESIGN = ve2302_pcie_qdma
-endif
+VIV_DESIGN = ve2302_pcie_qdma
 
 PFM_DIR = xilinx_$(VIV_DESIGN)_$(VERSION)
 PFM_PRJ_DIR = xsct/$(VIV_XSA_NAME)/$(VIV_XSA_NAME)/export/xilinx_$(VIV_DESIGN)_$(VIV_DESIGN)_1_0
@@ -35,18 +29,17 @@ XSCT_SRC = $(PFM_SCRIPTS_DIR)/gen_sdt.tcl
 help:
 	@echo 'Usage:'
 	@echo ''
-	@echo '  make platform [PLATFORM=<p>] [SILICON=<es1,prod>] [VERSION=<v>]'
+	@echo '  make platform [PLATFORM=<p>] [VERSION=<v>]'
 	@echo '    Generate Vitis platform'
 	@echo ''
-	@echo '  make sdt [PLATFORM=<p>] [SILICON=<es1,prod>] [VERSION=<v>]'
+	@echo '  make sdt [PLATFORM=<p>] [VERSION=<v>]'
 	@echo '    Generate SDT file for base xsa'
 	@echo ''
-	@echo '  make clean [PLATFORM=<p>] [SILICON=<es1,prod>] [VERSION=<v>]'
+	@echo '  make clean [PLATFORM=<p>] [VERSION=<v>]'
 	@echo '    Clean files and directories for specified platform'
 	@echo ''
 	@echo '  Defaults:'
 	@echo '    PLATFORM: $(PLATFORM) '
-	@echo '    SILICON: $(SILICON) '
 	@echo '    VERSION: $(VERSION) '
 	@echo ''
 
@@ -70,7 +63,7 @@ $(VIV_SDT): $(VIV_BASE_XSA)
 
 $(VIV_BASE_XSA): $(VIV_XSA)
 $(VIV_XSA):
-	make -C $(VIV_DIR) xsa JOBS=$(JOBS) SILICON=$(SILICON)
+	make -C $(VIV_DIR) xsa JOBS=$(JOBS)
 
 .PHONY: clean
 clean:

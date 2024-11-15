@@ -79,23 +79,14 @@ VPP_LDFLAGS +=  --config system.cfg
 VPP_LDFLAGS += --clock.freqHz 300000000:Tiler_top_1  --clock.freqHz 300000000:stitcher_top_1  --clock.defaultTolerance 0.001  $(XO_SRC_RELATIVE)/tiler.xo  $(XO_SRC_RELATIVE)/stitcher.xo
 
 ################### deb package generation variables and binary container global settings ###############
-
-SILICON ?= prod
 MAINTAINER = AMD
 BOARD = ve2302
 EXAMPLE = filter2d-aie
 XSA_FILE = $(BUILD_DIR)/filter2d_aie.xsa
 BINARY_CONTAINERS = $(TEMP_DIR)/link/int/filter2d_aie.xclbin
 XCLBIN_FILE = $(CURDIR)/filter2d_aie.xclbin
-
-ifeq ($(SILICON),es1)
-	DEB_BUILD_DIR = filter2d-aie-$(BOARD)-$(SILICON)
-	DEB_DIR = $(DEB_BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma-$(SILICON)/base/test/
-else
-	DEB_BUILD_DIR = filter2d-aie-$(BOARD)
-	DEB_DIR = $(DEB_BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
-endif
-
+DEB_BUILD_DIR = filter2d-aie-$(BOARD)
+DEB_DIR = $(DEB_BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
 VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
 ULP_CONFIG = $(VIV_DIR)/scripts/ulp.tcl
 VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi

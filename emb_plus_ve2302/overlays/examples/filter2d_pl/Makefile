@@ -30,19 +30,12 @@ CLK_FREQ = 299996999
 
 ## deb package script location
 VERSION = 1.0
-SILICON ?= prod
 MAINTAINER = AMD
 BOARD = ve2302
 EXAMPLE = filter2d-pl
 CONTROL_FILE = $(BUILD_DIR)/DEBIAN/control
-ifeq ($(SILICON),es1)
-	BUILD_DIR = $(EXAMPLE)-$(BOARD)-$(SILICON)
-	DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma-$(SILICON)/base/test/
-else
-	BUILD_DIR = $(EXAMPLE)-$(BOARD)
-	DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
-endif
-
+BUILD_DIR = $(EXAMPLE)-$(BOARD)
+DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
 VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
 ULP_CONFIG = $(VIV_DIR)/scripts/ulp.tcl
 VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi

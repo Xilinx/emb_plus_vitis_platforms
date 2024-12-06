@@ -7,6 +7,9 @@ set_param bitstream.enablePR 8519
 set_param bd.bdc.use_training_module 1
 set_param bd.noc.use_stub_nmu 0
 
+# Enable isolation
+set_param bd.isolation true
+
 # Set project variables
 set proj_dir ./project
 set userBD ulp
@@ -18,6 +21,7 @@ set xdc_list {./xdc/impl.xdc ./xdc/pcie.xdc ./xdc/pblock.xdc }
 set ip_repo_path {./ip}
 set jobs 8
 set silicon prod
+set cwd [pwd]
 
 # parse arguments
 for { set i 0 } { $i < $argc } { incr i } {
@@ -54,6 +58,7 @@ update_ip_catalog
 source $bd_tcl_dir/ulp.tcl
 source $bd_tcl_dir/training.tcl
 source $bd_tcl_dir/config_bd.tcl
+source $bd_tcl_dir/create_isolation.tcl
 
 save_bd_design
 
@@ -112,6 +117,19 @@ set_property strategy Performance_Auto_3 [get_runs impl_1]
 launch_runs impl_1 -to_step write_device_image -jobs $jobs
 wait_on_run impl_1
 open_run impl_1
+
+# Update BIF file with marker information for Isolation
+puts "Fixing BIF files"
+cd ${cwd}/${proj_dir}/${proj_name}.runs/impl_1
+set partial ${proj_name}_i_${userBD}_${userBD}_inst_0_partial
+exec sed -i "s/${proj_name}_wrapper.rcdo/${proj_name}_wrapper_markers.rcdo/g" ${proj_name}_wrapper.bif
+exec sed -i "s/${proj_name}_wrapper.rnpi/${proj_name}_wrapper_markers.rnpi/g" ${proj_name}_wrapper.bif
+exec sed -i "s/${partial}.rcdo/${partial}_markers.rcdo/g" ${partial}.bif
+exec sed -i "s/${partial}.rnpi/${partial}_markers.rnpi/g" ${partial}.bif
+puts "Re-run bootgen"
+exec bootgen -arch versal -image ${proj_name}_wrapper.bif -w -o ${proj_name}_wrapper.pdi
+exec bootgen -arch versal -image ${partial}.bif -w -o ${partial}.pdi
+cd ${cwd}
 
 set_property platform.board_id                        $proj_name              [current_project]
 set_property platform.name                            $proj_name              [current_project]

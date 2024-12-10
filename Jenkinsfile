@@ -236,7 +236,7 @@ pipeline {
         label 'Build_Master'
     }
     environment {
-        deploy_branch="main"
+        deploy_branch="2024.2"
         tool_release="2024.2"
         tool_build=sh(script: "readlink /proj/xbuilds/${env.tool_release}_daily_latest | sed -r 's/${env.tool_release}_(.*)/\\1/'", returnStdout: true)
         auto_branch="2022.1"
@@ -263,7 +263,7 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '20'))
     }
     triggers {
-        cron(env.BRANCH_NAME == 'main' ? 'H 21 * * *' : '')
+        cron(env.BRANCH_NAME == '2024.2' ? 'H 21 * * *' : '')
     }
     stages {
         stage('Clone Repos') {
@@ -273,7 +273,7 @@ pipeline {
                 }
             }
             steps {
-                // checkout main source repo
+                // checkout source repo
                 checkout([
                     $class: 'GitSCM',
                     branches: scm.branches,

@@ -151,7 +151,7 @@ def buildOverlay() {
             exit 1
         fi
         source ${setup} -r ${tool_release} -b ${tool_build} && set -e
-        bsub -R "select[osdistro==ubuntu]" -R "rusage[mem=${PAEG_LSF_MEM}]" -Is -q sil_ssw \
+        bsub -R "select[osdistro==ubuntu&&osver=ws8]" -R "rusage[mem=${PAEG_LSF_MEM}]" -Is -q sil_ssw \
             make overlay OVERLAY=${overlay} SILICON=${silicon}
         popd
     '''
@@ -237,10 +237,10 @@ pipeline {
     }
     environment {
         deploy_branch="main"
-        tool_release="2024.2"
+        tool_release="2025.1"
         tool_build=sh(script: "readlink /proj/xbuilds/${env.tool_release}_daily_latest | sed -r 's/${env.tool_release}_(.*)/\\1/'", returnStdout: true)
-        auto_branch="2022.1"
-        pfm_ver="202420_1"
+        auto_branch="2025.1"
+        pfm_ver="202510_1"
         ws="${WORKSPACE}"
         setup="${ws}/paeg-helper/env-setup.sh"
         lsf="${ws}/paeg-helper/scripts/lsf"

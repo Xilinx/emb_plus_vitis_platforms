@@ -21,12 +21,10 @@ Platforms list:
 
 Overlays list:
 - bandwidth_test
-- filter2d_aie\*
+- filter2d_aie
 - filter2d_pl
 - validate_aie2_pl
 - verify_test
-
-\* These overlays are untested in hardware.  Testing will happen in the next release.
 
 ## Tools Version
 

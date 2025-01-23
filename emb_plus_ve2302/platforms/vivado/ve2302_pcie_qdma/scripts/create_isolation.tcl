@@ -30,7 +30,6 @@ edit_iso_access -access /Secure/secure_xmpu_rpu -add [get_iso_smids /blp/cips/RP
 edit_iso_access -access /Secure/secure_xmpu_rpu -add [get_iso_smids /blp/cips/OSPI ]
 edit_iso_access -access /Secure/secure_xmpu_rpu -add [get_iso_smids /blp/cips/PMC ]
 edit_iso_access -access /Secure/secure_xmpu_rpu -add [get_iso_destinations /ddr_reg_4 ]
-edit_iso_access -access /Secure/secure_xmpu_rpu -add [get_iso_destinations /blp/cips/OCM_mem ]
 set_property secure true [get_iso_accesses /Secure/secure_xmpu_rpu]
 
 # Create Secure Access (RPU) for RPU TCM (LPD_XPPU)
@@ -84,6 +83,8 @@ create_iso_access -domain /Non_secure access_0
 set_property name {ns_strict_xmpu_apu} [get_iso_accesses /Non_secure/access_0]
 edit_iso_access -access /Non_secure/ns_strict_xmpu_apu -add [get_iso_smids /blp/cips/APU0 ]
 edit_iso_access -access /Non_secure/ns_strict_xmpu_apu -add [get_iso_destinations /ddr_reg_0 ]
+edit_iso_access -access /Non_secure/ns_strict_xmpu_apu -add [get_iso_destinations /blp/cips/OCM_mem ]
+
 # Create Shared Access (APU-RPU) (ddr_reg_2)
 create_iso_access -domain /Non_secure access_0
 set_property name {ns_shared_xmpu_apu_rpu} [get_iso_accesses /Non_secure/access_0]

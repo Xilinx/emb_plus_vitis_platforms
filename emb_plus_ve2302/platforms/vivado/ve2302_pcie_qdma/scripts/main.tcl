@@ -10,6 +10,8 @@ set_param bd.noc.use_stub_nmu 0
 # Enable isolation
 set_param bd.isolation true
 
+
+
 # Set project variables
 set proj_dir ./project
 set userBD ulp
@@ -67,6 +69,9 @@ import_files -fileset utils_1   -norecurse "./scripts/opt.pre.tcl"
 set_property used_in_synthesis false          [get_files *impl*.xdc]
 set_property used_in_synthesis false          [get_files pblock.xdc]
 set_property STEPS.OPT_DESIGN.TCL.PRE         [get_files *opt.pre.tcl]  [get_runs impl_1]
+
+# Workaround for clock placer error (can cause timing issues)
+set_param place.adv.checkBufggtConstraintsForCdgGroup true
 
 make_wrapper -files [get_files ${proj_name}.bd] -top
 import_files -force -norecurse $proj_dir/${proj_name}.srcs/sources_1/bd/${proj_name}/hdl/${proj_name}_wrapper.v
@@ -156,7 +161,7 @@ set_property platform.default_output_type             "xclbin"                [c
 #set_property platform.run.steps.opt_design.tcl.pre    "${userDir}/constraints/opt.pre.tcl"               [current_project]
 #set_property platform.run.steps.opt_design.tcl.post   "${userDir}/constraints/opt.post.tcl"              [current_project]
 #set_property platform.impl_constraint_files           "[list ${userDir}/constraints/impl.xdc,NORMAL,implementation]" [current_project]
-set_property platform.link_xp_switches_default        "{vivado_param:hd.enablePR=2591} {vivado_param:bitstream.enablePR=8519} {vivado_param:project.ensureVersalHasCIPS=false} {vivado_param:bd.enableAutoConnectionsInNoc=1} {vivado_param:constr.restoreXDEFConstraintsASTCL=1} {vivado_param:ips.enableSLRParameter=4}" [current_project]
+set_property platform.link_xp_switches_default        "{vivado_param:hd.enablePR=2591} {vivado_param:bitstream.enablePR=8519} {vivado_param:project.ensureVersalHasCIPS=false} {vivado_param:bd.enableAutoConnectionsInNoc=1} {vivado_param:constr.restoreXDEFConstraintsASTCL=1} {vivado_param:ips.enableSLRParameter=4} {vivado_param:place.adv.checkBufggtConstraintsForCdgGroup=true}" [current_project]
 
 write_hw_platform -force -fixed -hw -static ${proj_dir}/${proj_name}_base.xsa
 validate_hw_platform -verbose ${proj_dir}/${proj_name}_base.xsa

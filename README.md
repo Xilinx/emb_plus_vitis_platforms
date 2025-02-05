@@ -81,7 +81,8 @@ emb_plus_vitis_platforms
 A platform and its corresponding overlay have a parent-child
 relationship. To load an overlay, the AMD ACAP must first be loaded
 with its platform (via the PDI file in OSPI). The overlay must be
-generated using the exact same platform with which it will be loaded.
+generated using the exact same platform with which it will be loaded 
+with the same tool version.
 If not, the UUID (Universally Unique Identifier) between the platform
 and overlay will not match. Currently, there is an issue where
 different builds of a platform from the same source  may have differing

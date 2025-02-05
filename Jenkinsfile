@@ -151,7 +151,7 @@ def buildOverlay() {
             exit 1
         fi
         source ${setup} -r ${tool_release} -b ${tool_build} && set -e
-        bsub -R "select[osdistro==ubuntu&&osver=ws8]" -R "rusage[mem=${PAEG_LSF_MEM}]" -Is -q sil_ssw \
+        bsub -R "select[osdistro==ubuntu&&osver>=2204]" -R "rusage[mem=${PAEG_LSF_MEM}]" -Is -q sil_ssw \
             make overlay OVERLAY=${overlay} SILICON=${silicon}
         popd
     '''

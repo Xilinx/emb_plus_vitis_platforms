@@ -138,7 +138,7 @@ set_property platform.version                         "1.0"                   [c
 set_property platform.board_memories                  {{mem0 ddr4 6GB 5497558138880 5504000589823}} [current_project]
 set_property platform.board_interface_name            "PCIe"                  [current_project]
 set_property platform.board_interface_type            "gen4x8"                [current_project]
-set_property platform.num_compute_units               "4"                     [current_project]
+set_property platform.num_compute_units               "8"                     [current_project]
 set_property platform.platform_state                  "impl"                  [current_project]
 set_property platform.uses_pr                         true                    [current_project]
 set_property platform.extensible                      true                    [current_project]

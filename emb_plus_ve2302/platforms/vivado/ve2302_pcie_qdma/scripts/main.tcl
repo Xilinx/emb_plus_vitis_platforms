@@ -58,7 +58,6 @@ update_ip_catalog
 source $bd_tcl_dir/ulp.tcl
 source $bd_tcl_dir/training.tcl
 source $bd_tcl_dir/config_bd.tcl
-source $bd_tcl_dir/create_isolation.tcl
 
 save_bd_design
 
@@ -151,11 +150,6 @@ set_property platform.design_intent.server_managed    true                    [c
 set_property platform.design_intent.external_host     true                    [current_project]
 set_property platform.design_intent.datacenter        true                    [current_project]
 set_property platform.default_output_type             "xclbin"                [current_project]
-#set_property platform.pre_sys_link_overlay_tcl_hook   "${userDir}/constraints/sys_link_overlay.pre.tcl"  [current_project]
-#set_property platform.post_sys_link_overlay_tcl_hook  "${userDir}/constraints/sys_link_overlay.post.tcl" [current_project]
-#set_property platform.run.steps.opt_design.tcl.pre    "${userDir}/constraints/opt.pre.tcl"               [current_project]
-#set_property platform.run.steps.opt_design.tcl.post   "${userDir}/constraints/opt.post.tcl"              [current_project]
-#set_property platform.impl_constraint_files           "[list ${userDir}/constraints/impl.xdc,NORMAL,implementation]" [current_project]
 set_property platform.link_xp_switches_default        "{vivado_param:hd.enablePR=2591} {vivado_param:bitstream.enablePR=8519} {vivado_param:project.ensureVersalHasCIPS=false} {vivado_param:bd.enableAutoConnectionsInNoc=1} {vivado_param:constr.restoreXDEFConstraintsASTCL=1} {vivado_param:ips.enableSLRParameter=4}" [current_project]
 
 write_hw_platform -force -fixed -hw -static ${proj_dir}/${proj_name}_base.xsa

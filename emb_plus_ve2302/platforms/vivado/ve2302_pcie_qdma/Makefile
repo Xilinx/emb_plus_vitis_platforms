@@ -49,5 +49,5 @@ $(VIV_XSA): $(VIV_SRC) $(VIV_CONFIG)
 
 .PHONY: clean
 clean:
-	$(RM) $(VIV_PRJ_DIR) vivado* .Xil *dynamic* *.log *.xpe .crashReporter hd_visual *.swp uuid_data.txt
+	$(RM) $(VIV_PRJ_DIR) vivado* .Xil *dynamic* *.log *.xpe .crashReporter hd_visual *.swp uuid_data.txt *.json
 

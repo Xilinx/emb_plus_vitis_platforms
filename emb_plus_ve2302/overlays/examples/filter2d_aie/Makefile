@@ -4,7 +4,7 @@
 SHELL = bash
 YEAR = $(shell date '+%Y')
 MONTH = $(shell date '+%m')
-VERSION = 0.6
+VERSION = 1.0
 CURDIR = $(shell pwd)
 REPO_PATH = $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(CURDIR)))))
 COMMON_PATH = $(REPO_PATH)/common

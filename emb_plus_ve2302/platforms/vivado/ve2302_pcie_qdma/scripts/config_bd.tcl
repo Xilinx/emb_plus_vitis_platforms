@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 Advanced Micro Devices, Inc.
+# Copyright (C) 2023 - 2025 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 ################################################################
@@ -363,6 +363,7 @@ refclk_PROT0_R0_100_MHz_unique1} \
     CONFIG.enable_ibert {false} \
     CONFIG.enable_jtag_dbg {false} \
     CONFIG.enable_more_clk {false} \
+    CONFIG.enable_gtwizard {false} \
     CONFIG.ext_pcie_cfg_space_enabled {true} \
     CONFIG.ext_xvc_vsec_enable {false} \
     CONFIG.extended_tag_field {true} \
@@ -445,6 +446,7 @@ refclk_PROT0_R0_100_MHz_unique1} \
     CONFIG.async_mode {SRNS} \
     CONFIG.disable_double_pipe {YES} \
     CONFIG.en_gt_pclk {false} \
+    CONFIG.enable_gtwizard {false} \
     CONFIG.ins_loss_profile {Add-in_Card} \
     CONFIG.lane_order {Bottom} \
     CONFIG.lane_reversal {false} \
@@ -1241,6 +1243,7 @@ proc create_hier_cell_blp_logic { parentCell nameHier} {
   set axi_firewall_user [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_firewall axi_firewall_user ]
   set_property -dict [ list \
    CONFIG.MASK_ERR_RESP {1} \
+   CONFIG.MAX_BURST_LENGTH {1} \
   ] $axi_firewall_user
 
   # Create instance: axi_ic_apu, and set properties

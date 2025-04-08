@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Advanced Micro Devices, Inc.
+# Copyright (C) 2024 - 2025 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 create_iso_design
@@ -78,12 +78,18 @@ create_iso_domain subsystem_0
 set_property name {Non_secure} [get_iso_domains /subsystem_0]
 create_iso_access -type cpu_list -domain /Non_secure cpus_0
 edit_iso_access -access /Non_secure/cpus_0 -add [get_iso_smids /blp/cips/APU0 ]
+
 # Create Strict Access (APU) for APU Local Execution Space (ddr_reg_0)
 create_iso_access -domain /Non_secure access_0
 set_property name {ns_strict_xmpu_apu} [get_iso_accesses /Non_secure/access_0]
 edit_iso_access -access /Non_secure/ns_strict_xmpu_apu -add [get_iso_smids /blp/cips/APU0 ]
 edit_iso_access -access /Non_secure/ns_strict_xmpu_apu -add [get_iso_destinations /ddr_reg_0 ]
-edit_iso_access -access /Non_secure/ns_strict_xmpu_apu -add [get_iso_destinations /blp/cips/OCM_mem ]
+
+# Create Strict Access (APU) for APU Local Execution Space (ocm)
+create_iso_access -domain /Non_secure access_0
+set_property name {ns_strict_xmpu_apu_ocm} [get_iso_accesses /Non_secure/access_0]
+edit_iso_access -access /Non_secure/ns_strict_xmpu_apu_ocm -add [get_iso_smids /blp/cips/APU0 ]
+edit_iso_access -access /Non_secure/ns_strict_xmpu_apu_ocm -add [get_iso_destinations /blp/cips/OCM_mem ]
 
 # Create Shared Access (APU-RPU) (ddr_reg_2)
 create_iso_access -domain /Non_secure access_0
@@ -153,7 +159,6 @@ set_property hide_en {true} [get_iso_units -hier FPD_XMPU]
 set_property enable {true} [get_iso_units -hier OCM_XMPU]
 set_property hide_en {true} [get_iso_units -hier OCM_XMPU]
 set_property enable {true} [get_iso_units /blp/axi_noc_mc_1x/ddrmc]
-set_property interrupt_enable {true} [get_iso_units /blp/axi_noc_mc_1x/ddrmc]
 set_property hide_en {true} [get_iso_units /blp/axi_noc_mc_1x/ddrmc]
 set_property lock {true} [get_iso_units /blp/axi_noc_mc_1x/ddrmc]
 

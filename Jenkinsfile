@@ -49,7 +49,7 @@ def buildPlatform() {
     script: '''
         pushd ${work_dir}/${board}
         source ${setup} -r ${tool_release} -b ${tool_build} && set -e
-        ${lsf} make platform PFM=${pfm_base} SILICON=${silicon} JOBS=32
+        ${lsf} make platform PFM=${pfm_base} SILICON=${silicon} JOBS=32 SECURE=${secure}
         popd
     '''
 }
@@ -152,7 +152,7 @@ def buildOverlay() {
         fi
         source ${setup} -r ${tool_release} -b ${tool_build} && set -e
         bsub -R "select[osdistro==ubuntu&&osver>=2204]" -R "rusage[mem=${PAEG_LSF_MEM}]" -Is -q sil_ssw \
-            make overlay OVERLAY=${overlay} SILICON=${silicon}
+            make overlay OVERLAY=${overlay} SILICON=${silicon} SECURE=${secure}
         popd
     '''
 }
@@ -163,6 +163,9 @@ def deployOverlay() {
         board=$(echo ${board} | tr _ -)
         if [ "${silicon}" != "prod" ]; then
             board=${board}-${silicon}
+        fi
+        if [ "${secure}" == "1" ]; then
+            board=${board}-secure
         fi
         DSTDIR=${DEPLOY_DIR}/${board}/${board}-${overlay}
         TMPDIR=$(mktemp -d -p .)
@@ -319,6 +322,15 @@ pipeline {
                         createWorkDir()
                     }
                 }
+                stage('ve2302_pcie_qdma secure')  {
+                    environment {
+                        pfm_name="ve2302_pcie_qdma_secure"
+                        work_dir="${ws}/build/${pfm_name}"
+                    }
+                    steps {
+                        createWorkDir()
+                    }
+                }
             }
         }
         stage('Build Platforms') {
@@ -331,6 +343,40 @@ pipeline {
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
                         silicon="prod"
+                        secure="0"
+                        pfm_dir="${work_dir}/${board}/platforms/${pfm}"
+                        xpfm="${pfm_dir}/${pfm_name}.xpfm"
+                    }
+                    when {
+                        anyOf {
+                            changeset "**/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma/**"
+                            triggeredBy 'TimerTrigger'
+                            triggeredBy 'UserIdCause'
+                        }
+                    }
+                    steps {
+                        buildPlatform()
+                    }
+                    post {
+                        success {
+                            script {
+                                env.VE2302_PFM_SUCCESS = '1'
+                            }
+                            deployBaseXSA()
+                            deployPlatform()
+                            deployPlatformSdt()
+                        }
+                    }
+                }
+                stage('ve2302_pcie_qdma secure platform build')  {
+                    environment {
+                        pfm_base="ve2302_pcie_qdma"
+                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm="xilinx_${pfm_name}_${pfm_ver}"
+                        work_dir="${ws}/build/${pfm_name}"
+                        board="emb_plus_ve2302"
+                        silicon="prod"
+                        secure="1"
                         pfm_dir="${work_dir}/${board}/platforms/${pfm}"
                         xpfm="${pfm_dir}/${pfm_name}.xpfm"
                     }
@@ -366,6 +412,34 @@ pipeline {
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
                         silicon="prod"
+                        secure="0"
+                        overlay="filter2d_pl"
+                        example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
+                    }
+                    when {
+                        anyOf {
+                            changeset "**/emb_plus_ve2302/overlays/examples/filter2d_pl/**"
+                            triggeredBy 'TimerTrigger'
+                            environment name: 'VE2302_PFM_SUCCESS', value: '1'
+                        }
+                    }
+                    steps {
+                        buildOverlay()
+                    }
+                    post {
+                        success {
+                            deployOverlay()
+                        }
+                    }
+                }
+                stage('filter2d_pl secure overlay build') {
+                    environment {
+                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm="xilinx_${pfm_name}_${pfm_ver}"
+                        work_dir="${ws}/build/${pfm_name}"
+                        board="emb_plus_ve2302"
+                        silicon="prod"
+                        secure="1"
                         overlay="filter2d_pl"
                         example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
                     }
@@ -392,6 +466,34 @@ pipeline {
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
                         silicon="prod"
+                        secure="0"
+                        overlay="verify_test"
+                        example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
+                    }
+                    when {
+                        anyOf {
+                            changeset "**/emb_plus_ve2302/overlays/examples/verify_test/**"
+                            triggeredBy 'TimerTrigger'
+                            environment name: 'VE2302_PFM_SUCCESS', value: '1'
+                        }
+                    }
+                    steps {
+                        buildOverlay()
+                    }
+                    post {
+                        success {
+                            deployOverlay()
+                        }
+                    }
+                }
+                stage('verify_test secure overlay build') {
+                    environment {
+                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm="xilinx_${pfm_name}_${pfm_ver}"
+                        work_dir="${ws}/build/${pfm_name}"
+                        board="emb_plus_ve2302"
+                        silicon="prod"
+                        secure="1"
                         overlay="verify_test"
                         example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
                     }
@@ -418,6 +520,34 @@ pipeline {
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
                         silicon="prod"
+                        secure="0"
+                        overlay="bandwidth_test"
+                        example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
+                    }
+                    when {
+                        anyOf {
+                            changeset "**/emb_plus_ve2302/overlays/examples/bandwidth_test/**"
+                            triggeredBy 'TimerTrigger'
+                            environment name: 'VE2302_PFM_SUCCESS', value: '1'
+                        }
+                    }
+                    steps {
+                        buildOverlay()
+                    }
+                    post {
+                        success {
+                            deployOverlay()
+                        }
+                    }
+                }
+                stage('bandwidth_test secure overlay build') {
+                    environment {
+                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm="xilinx_${pfm_name}_${pfm_ver}"
+                        work_dir="${ws}/build/${pfm_name}"
+                        board="emb_plus_ve2302"
+                        silicon="prod"
+                        secure="1"
                         overlay="bandwidth_test"
                         example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
                     }
@@ -444,6 +574,34 @@ pipeline {
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
                         silicon="prod"
+                        secure="0"
+                        overlay="validate_aie2_pl"
+                        example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
+                    }
+                    when {
+                        anyOf {
+                            changeset "**/emb_plus_ve2302/overlays/examples/validate_aie2_pl/**"
+                            triggeredBy 'TimerTrigger'
+                            environment name: 'VE2302_PFM_SUCCESS', value: '1'
+                        }
+                    }
+                    steps {
+                        buildOverlay()
+                    }
+                    post {
+                        success {
+                            deployOverlay()
+                        }
+                    }
+                }
+                stage('validate_aie2_pl secure overlay build') {
+                    environment {
+                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm="xilinx_${pfm_name}_${pfm_ver}"
+                        work_dir="${ws}/build/${pfm_name}"
+                        board="emb_plus_ve2302"
+                        silicon="prod"
+                        secure="1"
                         overlay="validate_aie2_pl"
                         example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
                     }
@@ -470,6 +628,34 @@ pipeline {
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
                         silicon="prod"
+                        secure="0"
+                        overlay="filter2d_aie"
+                        example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
+                    }
+                    when {
+                        anyOf {
+                            changeset "**/emb_plus_ve2302/overlays/examples/filter2d_aie/**"
+                            triggeredBy 'TimerTrigger'
+                            environment name: 'VE2302_PFM_SUCCESS', value: '1'
+                        }
+                    }
+                    steps {
+                        buildOverlay()
+                    }
+                    post {
+                        success {
+                            deployOverlay()
+                        }
+                    }
+                }
+                stage('filter2d_aie secure overlay build') {
+                    environment {
+                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm="xilinx_${pfm_name}_${pfm_ver}"
+                        work_dir="${ws}/build/${pfm_name}"
+                        board="emb_plus_ve2302"
+                        silicon="prod"
+                        secure="1"
                         overlay="filter2d_aie"
                         example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
                     }

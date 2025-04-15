@@ -5,6 +5,9 @@ CP = cp -f
 
 PWD = $(shell readlink -f .)
 
+JOBS ?= 8
+SECURE ?= 0
+
 # the platform directory has to be an absolute path when passed to v++
 PFM_DIR = $(PWD)/platforms
 PFM_VER = 202510_1
@@ -28,11 +31,12 @@ help:
 	@echo ''
 	@echo '    Valid options for OVERLAY: ${OVERLAY_LIST}'
 	@echo ''
-	@echo '  make platform PFM=<val> JOBS=<n>'
+	@echo '  make platform PFM=<val> [JOBS=<n>] [SECURE=1]'
 	@echo '    Build the Vitis platform.'
 	@echo ''
 	@echo '    Valid options for PFM: ${PFM_LIST}'
 	@echo '    JOBS: optional param to set number of synthesis jobs (default 8)'
+	@echo '    SECURE: optional param to turn on protections (default: off)'
 	@echo ''
 	@echo '  make clean'
 	@echo '    Clean runs'
@@ -41,6 +45,10 @@ help:
 # override platform name based on overlay
 ifneq ($(filter $(OVERLAY), $(OVERLAY_LIST)),)
   PFM = ve2302_pcie_qdma
+endif
+
+ifeq ($(SECURE),1)
+	PFM_NAME = $(PFM)_secure
 endif
 
 PFM_XPFM = $(PFM_DIR)/xilinx_$(PFM_NAME)_$(PFM_VER)/$(PFM_NAME).xpfm
@@ -77,7 +85,7 @@ $(PFM_XPFM):
 	  exit 1; \
 	fi; \
 	echo 'Create Vitis platform $(PFM_NAME) and SDT'; \
-	$(MAKE) -C $(PFM_DIR) all PLATFORM=$(PFM) VERSION=$(PFM_VER)
+	$(MAKE) -C $(PFM_DIR) all PLATFORM=$(PFM) VERSION=$(PFM_VER) JOBS=$(JOBS) SECURE=$(SECURE)
 
 .PHONY: clean
 clean:

@@ -7,9 +7,20 @@ RM = rm -rf
 MV = mv
 XSCT = $(XILINX_VITIS)/bin/xsct
 JOBS ?= 8
+SECURE ?= 0
 PLATFORM ?= ve2302_pcie_qdma
-VERSION ?= 202410_1
+VERSION ?= 202510_1
 VIV_DESIGN = ve2302_pcie_qdma
+
+ifeq ($(SECURE),1)
+  VIV_DESIGN = ve2302_pcie_qdma_secure
+endif
+
+VIV_DIR = vivado/$(PLATFORM)
+VIV_XSA_NAME = $(VIV_DESIGN)
+VIV_XSA = $(VIV_DIR)/project/$(VIV_XSA_NAME).xsa
+VIV_SDT = project_sdt
+VIV_BASE_XSA = $(VIV_DIR)/project/$(VIV_DESIGN)_base.xsa
 
 PFM_DIR = xilinx_$(VIV_DESIGN)_$(VERSION)
 PFM_PRJ_DIR = xsct/$(VIV_XSA_NAME)/$(VIV_XSA_NAME)/export/xilinx_$(VIV_DESIGN)_$(VIV_DESIGN)_1_0
@@ -18,18 +29,13 @@ PFM_SCRIPTS_DIR = scripts
 PFM_TCL = $(PFM_SCRIPTS_DIR)/pfm.tcl
 PFM_XPFM = $(PFM_DIR)/$(VIV_DESIGN).xpfm
 
-VIV_DIR = vivado/$(PLATFORM)
-VIV_XSA_NAME = $(VIV_DESIGN)
-VIV_XSA = $(VIV_DIR)/project/$(VIV_XSA_NAME).xsa
-VIV_SDT = project_sdt
-VIV_BASE_XSA = $(VIV_DIR)/project/$(VIV_DESIGN)_base.xsa
 XSCT_SRC = $(PFM_SCRIPTS_DIR)/gen_sdt.tcl
 
 .PHONY: help
 help:
 	@echo 'Usage:'
 	@echo ''
-	@echo '  make platform [PLATFORM=<p>] [VERSION=<v>]'
+	@echo '  make platform [PLATFORM=<p>] [VERSION=<v>] [JOBS=<j>] [SECURE=1]'
 	@echo '    Generate Vitis platform'
 	@echo ''
 	@echo '  make sdt [PLATFORM=<p>] [VERSION=<v>]'
@@ -41,6 +47,8 @@ help:
 	@echo '  Defaults:'
 	@echo '    PLATFORM: $(PLATFORM) '
 	@echo '    VERSION: $(VERSION) '
+	@echo '    JOBS: $(JOBS) '
+	@echo '    SECURE: $(SECURE) '
 	@echo ''
 
 
@@ -63,7 +71,7 @@ $(VIV_SDT): $(VIV_BASE_XSA)
 
 $(VIV_BASE_XSA): $(VIV_XSA)
 $(VIV_XSA):
-	make -C $(VIV_DIR) xsa JOBS=$(JOBS)
+	make -C $(VIV_DIR) xsa JOBS=$(JOBS) SECURE=$(SECURE)
 
 .PHONY: clean
 clean:

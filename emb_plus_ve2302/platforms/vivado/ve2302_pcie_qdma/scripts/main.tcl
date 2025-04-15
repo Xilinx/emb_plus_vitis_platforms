@@ -1,16 +1,9 @@
-# Copyright (C) 2023 - 2024 Advanced Micro Devices, Inc.
+# Copyright (C) 2023 - 2025 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 # Set the necessary Vivado params for the platform build
-enable_beta_device xcve2302-*
-set_param bitstream.enablePR 8519
 set_param bd.bdc.use_training_module 1
 set_param bd.noc.use_stub_nmu 0
-
-# Enable isolation
-set_param bd.isolation true
-
-
 
 # Set project variables
 set proj_dir ./project
@@ -22,8 +15,8 @@ set output {xsa}
 set xdc_list {./xdc/impl.xdc ./xdc/pcie.xdc ./xdc/pblock.xdc }
 set ip_repo_path {./ip}
 set jobs 8
-set silicon prod
 set cwd [pwd]
+set use_secure 0
 
 # parse arguments
 for { set i 0 } { $i < $argc } { incr i } {
@@ -32,22 +25,22 @@ for { set i 0 } { $i < $argc } { incr i } {
     incr i
     set jobs [lindex $argv $i]
   }
-  # silicon
-  if { [lindex $argv $i] == "-silicon" } {
+# pick secure/unsecure
+  if { [lindex $argv $i] == "-secure" } {
     incr i
-    set silicon [lindex $argv $i]
+    set use_secure [lindex $argv $i]
+    puts "Setting secure flag to $use_secure"
   }
 }
 
-if {$silicon == "es1"} {
-  set part xcve2302-sfva784-2MP-e-S-es1
-  set proj_name ve2302_es1_pcie_qdma
-} else {
-  set part xcve2302-sfva784-2MP-e-S
-  set proj_name ve2302_pcie_qdma
-}
-
+set part xcve2302-sfva784-2MP-e-S
+set proj_name ve2302_pcie_qdma
 set proj_board [get_board_parts "*:emb-plus-vpr-4616:*" -latest_file_version]
+
+if {${use_secure}} {
+  set_param bd.isolation true
+  set proj_name ve2302_pcie_qdma_secure
+}
 
 create_project -name $proj_name -force -dir $proj_dir -part $part
 set_property board_part $proj_board [current_project]
@@ -60,18 +53,19 @@ update_ip_catalog
 source $bd_tcl_dir/ulp.tcl
 source $bd_tcl_dir/training.tcl
 source $bd_tcl_dir/config_bd.tcl
-source $bd_tcl_dir/create_isolation.tcl
+if {${use_secure}} {
+  # To use the Isolation Editor in the GUI, this MUST be set in Vivado_init.tcl
+  # before opening the project:
+  # set_param bd.isolation true
+
+  source $bd_tcl_dir/create_isolation.tcl
+}
 
 save_bd_design
 
 # Import constraint and hook files, and set their properties as required
-import_files -fileset utils_1   -norecurse "./scripts/opt.pre.tcl"
 set_property used_in_synthesis false          [get_files *impl*.xdc]
 set_property used_in_synthesis false          [get_files pblock.xdc]
-set_property STEPS.OPT_DESIGN.TCL.PRE         [get_files *opt.pre.tcl]  [get_runs impl_1]
-
-# Workaround for clock placer error (can cause timing issues)
-set_param place.adv.checkBufggtConstraintsForCdgGroup true
 
 make_wrapper -files [get_files ${proj_name}.bd] -top
 import_files -force -norecurse $proj_dir/${proj_name}.srcs/sources_1/bd/${proj_name}/hdl/${proj_name}_wrapper.v
@@ -124,17 +118,19 @@ wait_on_run impl_1
 open_run impl_1
 
 # Update BIF file with marker information for Isolation
-puts "Fixing BIF files"
-cd ${cwd}/${proj_dir}/${proj_name}.runs/impl_1
-set partial ${proj_name}_i_${userBD}_${userBD}_inst_0_partial
-exec sed -i "s/${proj_name}_wrapper.rcdo/${proj_name}_wrapper_markers.rcdo/g" ${proj_name}_wrapper.bif
-exec sed -i "s/${proj_name}_wrapper.rnpi/${proj_name}_wrapper_markers.rnpi/g" ${proj_name}_wrapper.bif
-exec sed -i "s/${partial}.rcdo/${partial}_markers.rcdo/g" ${partial}.bif
-exec sed -i "s/${partial}.rnpi/${partial}_markers.rnpi/g" ${partial}.bif
-puts "Re-run bootgen"
-exec bootgen -arch versal -image ${proj_name}_wrapper.bif -w -o ${proj_name}_wrapper.pdi
-exec bootgen -arch versal -image ${partial}.bif -w -o ${partial}.pdi
-cd ${cwd}
+if { ${use_secure} } {
+  puts "Updating BIF files"
+  cd ${cwd}/${proj_dir}/${proj_name}.runs/impl_1
+  set partial ${proj_name}_i_${userBD}_${userBD}_inst_0_partial
+  exec sed -i "s/${proj_name}_wrapper.rcdo/${proj_name}_wrapper_markers.rcdo/g" ${proj_name}_wrapper.bif
+  exec sed -i "s/${proj_name}_wrapper.rnpi/${proj_name}_wrapper_markers.rnpi/g" ${proj_name}_wrapper.bif
+  exec sed -i "s/${partial}.rcdo/${partial}_markers.rcdo/g" ${partial}.bif
+  exec sed -i "s/${partial}.rnpi/${partial}_markers.rnpi/g" ${partial}.bif
+  puts "Re-run bootgen"
+  exec bootgen -arch versal -image ${proj_name}_wrapper.bif -w -o ${proj_name}_wrapper.pdi
+  exec bootgen -arch versal -image ${partial}.bif -w -o ${partial}.pdi
+  cd ${cwd}
+}
 
 set_property platform.board_id                        $proj_name              [current_project]
 set_property platform.name                            $proj_name              [current_project]
@@ -156,11 +152,6 @@ set_property platform.design_intent.server_managed    true                    [c
 set_property platform.design_intent.external_host     true                    [current_project]
 set_property platform.design_intent.datacenter        true                    [current_project]
 set_property platform.default_output_type             "xclbin"                [current_project]
-#set_property platform.pre_sys_link_overlay_tcl_hook   "${userDir}/constraints/sys_link_overlay.pre.tcl"  [current_project]
-#set_property platform.post_sys_link_overlay_tcl_hook  "${userDir}/constraints/sys_link_overlay.post.tcl" [current_project]
-#set_property platform.run.steps.opt_design.tcl.pre    "${userDir}/constraints/opt.pre.tcl"               [current_project]
-#set_property platform.run.steps.opt_design.tcl.post   "${userDir}/constraints/opt.post.tcl"              [current_project]
-#set_property platform.impl_constraint_files           "[list ${userDir}/constraints/impl.xdc,NORMAL,implementation]" [current_project]
 set_property platform.link_xp_switches_default        "{vivado_param:hd.enablePR=2591} {vivado_param:bitstream.enablePR=8519} {vivado_param:project.ensureVersalHasCIPS=false} {vivado_param:bd.enableAutoConnectionsInNoc=1} {vivado_param:constr.restoreXDEFConstraintsASTCL=1} {vivado_param:ips.enableSLRParameter=4} {vivado_param:place.adv.checkBufggtConstraintsForCdgGroup=true}" [current_project]
 
 write_hw_platform -force -fixed -hw -static ${proj_dir}/${proj_name}_base.xsa

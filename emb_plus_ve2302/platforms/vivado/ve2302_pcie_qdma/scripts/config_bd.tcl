@@ -922,6 +922,7 @@ proc create_hier_cell_dfx_decoupling { parentCell nameHier } {
 
   # Create instance: ip_irq_kernel_00, and set properties
   set ip_irq_kernel_00 [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_ff ip_irq_kernel_00 ]
+  set_property CONFIG.C_WIDTH {33} $ip_irq_kernel_00
 
   # Create instance: ip_irq_dbg_fw_00, and set properties
   set ip_irq_dbg_fw_00 [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_ff ip_irq_dbg_fw_00 ]

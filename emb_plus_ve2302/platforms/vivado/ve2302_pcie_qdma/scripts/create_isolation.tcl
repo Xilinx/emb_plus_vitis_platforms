@@ -120,6 +120,7 @@ edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smid
 edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smids /blp/cips/AIE ]
 edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smids /blp/axi_noc_ic/S06_AXI ]
 edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smids /blp/cips/RPU0 ]
+edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smids /blp/cips/APU0 ]
 edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_destinations /ddr_reg_6]
 
 # Base Protections

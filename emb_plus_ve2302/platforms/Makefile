@@ -9,7 +9,7 @@ XSCT = $(XILINX_VITIS)/bin/xsct
 JOBS ?= 8
 SECURE ?= 0
 PLATFORM ?= ve2302_pcie_qdma
-VERSION ?= 202510_1
+VERSION ?= 202520_1
 VIV_DESIGN = ve2302_pcie_qdma
 
 ifeq ($(SECURE),1)

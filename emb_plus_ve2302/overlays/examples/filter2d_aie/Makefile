@@ -1,10 +1,10 @@
-# Copyright (C) 2023-2024 Advanced Micro Devices, Inc.
+# Copyright (C) 2023-2025 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 SHELL = bash
 YEAR = $(shell date '+%Y')
 MONTH = $(shell date '+%m')
-VERSION = 1.0
+VERSION = 1.2
 CURDIR = $(shell pwd)
 REPO_PATH = $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(CURDIR)))))
 COMMON_PATH = $(REPO_PATH)/common
@@ -15,37 +15,24 @@ META_GEN = $(COMMON_PATH)/gen_metadata.py
 VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma
 XUTIL = xclbinutil
 META_JSON =  $(CURDIR)/filter2d_aie_partition_metadata.json
-
 PLATFORM ?=
 PLATFORM_NAME = $(strip $(patsubst %.xpfm, % , $(shell basename $(PLATFORM))))
 
 # v++ flags
 VPP = v++
-AIECXX := aiecompiler
-MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
-CUR_DIR := $(patsubst %/,%,$(dir $(MK_PATH)))
 SRC_DIR_1_RELATIVE = ../../../../common/Vitis_Libraries/vision/L1/include
-SRC_DIR_2_RELATIVE = ../../../../common/Vitis_Libraries/vision/L2/tests/aie-ml/yuy2_filter2d/16bit_aie_8bit_pl
-
 SRC_DIR_1 = $(realpath $(SRC_DIR_1_RELATIVE))
-SRC_DIR_2 = $(realpath $(SRC_DIR_2_RELATIVE))
-
 XO_SRC_RELATIVE = ../../../../common/Vitis_Libraries/vision/L1/lib/hw/
 XO_SRC = $(realpath $(XO_SRC_RELATIVE))
 
 # setting default value
 TARGET ?= hw
 TEMP_DIR := _x
-TEMP_REPORT_DIR := $(CUR_DIR)/reports/_x.$(TARGET).$(PLATFORM_NAME)
+TEMP_REPORT_DIR := $(CURDIR)/reports/_x.$(TARGET).$(PLATFORM_NAME)
 BUILD_DIR := build_dir.$(TARGET).$(PLATFORM_NAME)
-BUILD_REPORT_DIR := $(CUR_DIR)/reports/_build.$(TARGET).$(PLATFORM_NAME)
-XCLBIN_DIR := $(CUR_DIR)/$(BUILD_DIR)
+BUILD_REPORT_DIR := $(CURDIR)/reports/_build.$(TARGET).$(PLATFORM_NAME)
+XCLBIN_DIR := $(CURDIR)/$(BUILD_DIR)
 export XCL_BINDIR = $(XCLBIN_DIR)
-BINARY_CONTAINERS_DEPS :=
-
-VPP_FLAGS += --save-temps
-VPP_LDFLAGS += --optimize 2 -R 2
-VPP_LDFLAGS += --kernel_frequency 400
 
 # aie template
 XILINX_VITIS_AIETOOLS ?=
@@ -59,24 +46,25 @@ endif
 ############################ setting AIE Compiler ###########################
 
 AIETARGET := hw
-AIE_CXXFLAGS += --target=$(AIETARGET) --platform=$(PLATFORM) --pl-freq=400 -pl-axi-lite=true
+AIE_CXXFLAGS += -c --mode aie
+AIE_CXXFLAGS += --target=$(AIETARGET) --platform=$(PLATFORM)
 AIE_CXXFLAGS += -I $(XILINX_VITIS_AIETOOLS)/include
 AIE_CONTAINER = $(TEMP_DIR)/libadf.a
 AIE_CXXFLAGS += -I $(SRC_DIR_1)/aie-ml
 AIE_CXXFLAGS += -I $(SRC_DIR_1)/aie
-AIE_CXXFLAGS += -I $(SRC_DIR_2)
 AIE_CXXFLAGS += -I $(CURDIR)
-BINARY_CONTAINERS_DEPS += $(AIE_CONTAINER)
-
 
 ########################## Kernel compiler global settings ##########################
 
+VPP_FLAGS += --save-temps
 VPP_FLAGS +=  -I $(SRC_DIR_1)
 VPP_FLAGS +=  -I $(XILINX_VITIS_AIETOOLS)/include
-VPP_FLAGS +=  -I $(SRC_DIR_2)
 VPP_FLAGS +=  -I $(CURDIR)
+VPP_LDFLAGS += --clock.freqHz 400000000:Tiler_top_1  --clock.freqHz 400000000:stitcher_top_1  $(XO_SRC_RELATIVE)/tiler.xo  $(XO_SRC_RELATIVE)/stitcher.xo
 VPP_LDFLAGS +=  --config system.cfg
-VPP_LDFLAGS += --clock.freqHz 300000000:Tiler_top_1  --clock.freqHz 300000000:stitcher_top_1  --clock.defaultTolerance 0.001  $(XO_SRC_RELATIVE)/tiler.xo  $(XO_SRC_RELATIVE)/stitcher.xo
+VPP_FLAGS_MM2S += --verbose
+VPP_FLAGS_MM2S += -I$(XILINX_VITIS)/aietools/include
+MM2S_XO_FILE = $(TEMP_DIR)/mm2s.xo
 
 ################### deb package generation variables and binary container global settings ###############
 MAINTAINER = AMD
@@ -105,26 +93,30 @@ all: xclbin $(XSA_FILE) $(DEB_FILE)
 xclbin:  $(XCLBIN_FILE)
 $(XCLBIN_FILE): $(BINARY_CONTAINERS)
 	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -ulp $(ULP_CONFIG) -o $(META_JSON)
-	$(XUTIL) --input $^ --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $@
+	$(XUTIL) --input $^ --remove-section AIE_RESOURCES --output f2d_aie_aie_resource.xclbin
+	$(XUTIL) --input f2d_aie_aie_resource.xclbin --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $@
 
 $(BINARY_CONTAINERS): $(XSA_FILE) $(AIE_CONTAINER)
 	${VPP} -p -t ${TARGET} -f ${PLATFORM} ${AIE_CONTAINER} --package.boot_mode=ospi -o $@ $^
 
 
-$(XSA_FILE): $(AIE_CONTAINER)
+$(XSA_FILE): $(AIE_CONTAINER) $(MM2S_XO_FILE)
 	mkdir -p $(BUILD_DIR)
 	$(VPP) -l $(VPP_FLAGS) -t $(TARGET) --platform $(PLATFORM) --temp_dir $(TEMP_DIR) --report_dir $(BUILD_REPORT_DIR) $(VPP_LDFLAGS)  -o $@ $^
 	cp $(XSA_FILE) ./
 
 ################ Setting Rules for Binary Containers (Building Kernels) ################
 
-BINARY_CONTAINERS_DEPS += $(BINARY_CONTAINER_emb_plus_pl_controller.xclbin_OBJS)
-BINARY_CONTAINERS_DEPS += $(AIE_CONTAINER)
+$(MM2S_XO_FILE): $(CURDIR)/mm2s.cpp
+	@echo "Compiling Kernel: mm2s"
+	mkdir -p $(dir $@)
+	$(VPP) -c  $(VPP_FLAGS_MM2S) -t $(TARGET) --platform $(PLATFORM) -k mm2s -I'$(<D)' --temp_dir $(TEMP_DIR) --report_dir $(BUILD_REPORT_DIR) -o'$@' '$<'
 
-$(AIE_CONTAINER): graph.cpp
+
+$(AIE_CONTAINER): $(CURDIR)/graph.cpp
 	@echo "Compiling: libadf.a"
 	mkdir -p $(dir $@)
-	$(AIECXX) $(AIE_CXXFLAGS) $^
+	$(VPP) $(AIE_CXXFLAGS) --aie.xlopt=0 --aie.Xmapper=DisableFloorplanning --work_dir=./Work $^
 	cp ./libadf.a $(AIE_CONTAINER)
 
 .PHONY: deb
@@ -157,9 +149,9 @@ clean:
 	-$(RMDIR) _x_temp.*/_x.* _x_temp.*/.Xil _x_temp.*/profile_summary.* xo_* _x*
 	-$(RMDIR) _x_temp.*/dltmp* _x_temp.*/kernel_info.dat _x_temp.*/*.log
 	-$(RMDIR) _x_temp.* .Xil .ipcache .crashReporter
-	-$(RMDIR) $(CUR_DIR)/libadf.a  *.csv *.log sol.db
+	-$(RMDIR) $(CURDIR)/libadf.a  *.csv *.log sol.db
 	-$(RMDIR) _x_temp.hw.* build_dir.hw.* *.BIN *.bin *.xsa *.bif
-	-$(RMDIR) $(CUR_DIR)/Work  $(CUR_DIR)/reports $(BUILD_DIR)
+	-$(RMDIR) $(CURDIR)/Work  $(CURDIR)/reports $(BUILD_DIR)
 	-$(RMDIR) $(DEB_BUILD_DIR) $(DEB_FILE)
 	-$(RMDIR) $(META_JSON) *data.txt
 

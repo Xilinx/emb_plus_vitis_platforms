@@ -29,7 +29,7 @@ XSA_FILE = filter2d_pl.xsa
 CLK_FREQ = 299996999
 
 ## deb package script location
-VERSION = 1.0
+VERSION = 1.2
 MAINTAINER = AMD
 BOARD = ve2302
 EXAMPLE = filter2d-pl

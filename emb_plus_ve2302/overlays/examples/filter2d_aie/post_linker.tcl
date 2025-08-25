@@ -1,10 +1,13 @@
-# Copyright (C) 2023-2024 Advanced Micro Devices, Inc.
+# Copyright (C) 2023-2025 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
-set CurrentPath [pwd]
+global env
 
-set BasePath [regsub {\/emb_plus_ve2302\/.*$} [pwd] ""]
-set script [regsub {\/emb_plus_ve2302\/.*$} [pwd] ""]/common/Vitis_Libraries/vision/ext/xf_rtl_utils.tcl
+if {[info exists ::env(XF_PROJ_ROOT)]} {
+    set script $env(XF_PROJ_ROOT)/ext/xf_rtl_utils.tcl 
+} else {
+    set script  [regsub {\/emb_plus_ve2302\/.*$} [pwd] ""]/common/Vitis_Libraries/vision/ext/xf_rtl_utils.tcl
+}
 
 source -notrace $script
 

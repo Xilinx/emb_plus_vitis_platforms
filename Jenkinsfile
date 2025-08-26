@@ -62,6 +62,9 @@ def deployBaseXSA() {
         if [ "${silicon}" != "prod" ]; then
             board=${board}-${silicon}
         fi
+        if [ "${secure}" == "1" ]; then
+            board=${board}-secure
+        fi
         DSTDIR=${DEPLOY_DIR}/${board}
         for host in ${HOSTS[@]} ; do
             ssh ${host} mkdir -p ${DSTDIR}
@@ -77,6 +80,9 @@ def deployPlatform() {
         board=$(echo ${board} | tr _ -)
         if [ "${silicon}" != "prod" ]; then
             board=${board}-${silicon}
+        fi
+        if [ "${secure}" == "1" ]; then
+            board=${board}-secure
         fi
         DSTDIR=${DEPLOY_DIR}/${board}/${pfm}
         for host in ${HOSTS[@]} ; do
@@ -94,6 +100,9 @@ def deployPlatformSdt() {
         board=$(echo ${board} | tr _ -)
         if [ "${silicon}" != "prod" ]; then
             board=${board}-${silicon}
+        fi
+        if [ "${secure}" == "1" ]; then
+            board=${board}-secure
         fi
         DSTDIR=${DEPLOY_DIR}/${board}/sdt
         for host in ${HOSTS[@]} ; do

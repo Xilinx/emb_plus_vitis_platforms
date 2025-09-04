@@ -248,11 +248,12 @@ pipeline {
         label 'Build_Master'
     }
     environment {
-        deploy_branch="2025.1"
-        tool_release="2025.1"
+        deploy_branch="2025.1.1"
+        tool_release="2025.1.1"
+        deploy_release="2025.1"
         tool_build=sh(script: "readlink /proj/xbuilds/${env.tool_release}_daily_latest | sed -r 's/${env.tool_release}_(.*)/\\1/'", returnStdout: true)
         auto_branch="2025.1"
-        pfm_ver="202510_1"
+        pfm_ver="202511_1"
         ws="${WORKSPACE}"
         setup="${ws}/paeg-helper/env-setup.sh"
         lsf="${ws}/paeg-helper/scripts/lsf"
@@ -262,7 +263,7 @@ pipeline {
         BUILD_ID="${env.BRANCH_NAME == env.deploy_branch ? env.BUILD_DATE : env.BRANCH_NAME}"
         HOSTS="${env.BRANCH_NAME == env.deploy_branch ? 'localhost xcorsync01' : 'localhost'}"
         PAEG_BASE_DIR="/wrk/paeg_builds/build-artifacts/emb-plus-vitis-platforms/${tool_release}"
-        YOCTO_BASE_DIR="/proj/yocto/rave_artifacts/${tool_release}/hw"
+        YOCTO_BASE_DIR="/proj/yocto/rave_artifacts/${deploy_release}/hw"
         DEPLOY_BASE_DIR="${env.BRANCH_NAME == env.deploy_branch ? env.YOCTO_BASE_DIR : env.PAEG_BASE_DIR}"
         DEPLOY_DIR="${DEPLOY_BASE_DIR}/${BUILD_ID}"
         DEPLOY_PFM_DIR="${YOCTO_BASE_DIR}/daily_latest"
@@ -275,7 +276,7 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '20'))
     }
     triggers {
-        cron(env.BRANCH_NAME == '2025.1' ? 'H 21 * * *' : '')
+        cron(env.BRANCH_NAME == '2025.1.1' ? 'H 21 * * *' : '')
     }
     stages {
         stage('Clone Repos') {

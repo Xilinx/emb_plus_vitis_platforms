@@ -28,7 +28,7 @@ Overlays list:
 
 ## Tools Version
 
-This branch is targeting the Vivado and Vitis 2025.1 tools version. Note that
+This branch is targeting the Vivado and Vitis 2025.1.1 tools version. Note that
 not all platforms and overlays may be validated with this tools version. Consult
 the application specific documentation for the latest validated version.
 
@@ -131,9 +131,6 @@ overlays against pre-built platforms. The pre-built platforms for each
 release are available in the [released section](https://github.com/Xilinx/emb_plus_vitis_platforms/releases).
 Look for the "xilinx_ve2302_pcie_qdma_*.tar.gz" tarballs.
 
-**_NOTE:_** : the current V0.5 and V0.6 releases has identical
-platforms. Therefore for both V0.6 and V0.5 prebuilt platform, look for
-xilinx_ve2302_pcie_qdma_*.tar.gz tar ball under V0.5 release.
 
 To use these platforms:
 
@@ -149,7 +146,7 @@ The following are the commands:
 
 ```
 tar -xf xilinx_ve2302_pcie_qdma_<*>.tar.gz
-cp xilinx_ve2302_pcie_qdma_202320_1/ emb_plus_vitis_platforms/emb_plus_ve2302/platforms/ -rf
+cp xilinx_ve2302_pcie_qdma_202520_1/ emb_plus_vitis_platforms/emb_plus_ve2302/platforms/ -rf
 cd emb_plus_vitis_platforms/emb_plus_ve2302/
 make platform PFM=<platform_name> overlay OVERLAY=<overlay_name>
 ```
@@ -157,6 +154,6 @@ make platform PFM=<platform_name> overlay OVERLAY=<overlay_name>
 
 ## License
 
-(C) Copyright 2023 - 2024, Advanced Micro Devices Inc.\
+(C) Copyright 2023 - 2025, Advanced Micro Devices Inc.\
 SPDX-License-Identifier: MIT
 

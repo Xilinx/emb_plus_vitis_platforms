@@ -1,5 +1,5 @@
-/**
-* Copyright (C) 2024 Advanced Micro Devices, Inc.
+/*
+* Copyright (C) 2025 Advanced Micro Devices, Inc.
 * SPDX-License-Identifier: MIT
 */
 
@@ -12,30 +12,35 @@
 
 #include <algorithm>
 #include <common/xf_aie_hw_utils.hpp>
-#include "imgproc/xf_filter2d_16b_aieml.hpp"
+#include "xf_filter2d_16b_aieml.hpp"
 
 #ifndef _AIE_YUY2FILTER2D_AIEML_H_
 #define _AIE_YUY2FILTER2D_AIEML_H_
 
 #define PARALLEL_FACTOR_16b 16 // Parallelization factor for 16b operations (16x mults)
 #define SRS_SHIFT 10           // SRS shift used can be increased if input data likewise adjusted)
- alignas(::aie::vector_decl_align) int16_t y_buff[2048];
- alignas(::aie::vector_decl_align) int16_t uv_buff[2048];
- alignas(::aie::vector_decl_align) int16_t y_filtered_buff[2048];
+alignas(::aie::vector_decl_align) int16_t y_buff[7680]; // Set these as (TileHeight*TileWidth*Channels)/2
+alignas(::aie::vector_decl_align) int16_t uv_buff[7680];
+alignas(::aie::vector_decl_align) int16_t y_filtered_buff[7680];
 
 namespace xf {
 namespace cv {
 namespace aie {
 
 __attribute__((noinline)) void yuy2_filter2D(adf::input_buffer<int16_t>& img_in,
-                                             //const int16_t (&coeff)[16],
+						adf::input_buffer<int16_t>& coeff,
+//                            const int16_t (&coeff)[16],
                                              adf::output_buffer<int16_t>& img_out) {
     ::aie::vector<int16_t, 8> v;
     v = ::aie::broadcast<int16_t, 8>(1);
 
     int16_t* restrict img_in_ptr = (int16_t*)::aie::begin(img_in);
+    int16_t* restrict coeff_in_ptr = (int16_t*)::aie::begin(coeff);
     int16_t* restrict img_out_ptr = (int16_t*)::aie::begin(img_out);
 
+    ::aie::vector<int16_t, 16> coeff_temp = ::aie::load_v<16>(coeff_in_ptr);
+    const int16_t coeff_in[16] = {0};
+    ::aie::store_v((int16_t *)coeff_in, coeff_temp);
     const int16_t image_width = xfGetTileWidth(img_in_ptr) * 2; // inclusive of channels
     const int16_t image_height = xfGetTileHeight(img_in_ptr);
 
@@ -44,12 +49,9 @@ __attribute__((noinline)) void yuy2_filter2D(adf::input_buffer<int16_t>& img_in,
     int16_t* in_img_ptr = (int16_t*)xfGetImgDataPtr(img_in_ptr);
     int16_t* out_img_ptr = (int16_t*)xfGetImgDataPtr(img_out_ptr);
 
- 
     int16_t* restrict y_filtered_ptr = (int16_t*)y_filtered_buff;
     int16_t* restrict y_ptr = (int16_t*)y_buff;
     int16_t* restrict uv_ptr = (int16_t*)uv_buff;
-	
-	int16_t coeff[16] = {0, 1024, 0, 0, 1024, -4096, 1024, 0, 0, 1024, 0, 0, 0, 0, 0, 0};
 
     // unzip
     {
@@ -59,7 +61,7 @@ __attribute__((noinline)) void yuy2_filter2D(adf::input_buffer<int16_t>& img_in,
                         posn = image_width * i + j; // posn in img
                         ::aie::vector<int16_t, 16> y_temp, uv_temp;
                         std::tie(y_temp, uv_temp) = ::aie::interleave_unzip(
-                        ::aie::load_v<16>(in_img_ptr + posn), ::aie::load_v<16>(in_img_ptr + posn + 16), 1);
+                            ::aie::load_v<16>(in_img_ptr + posn), ::aie::load_v<16>(in_img_ptr + posn + 16), 1);
                         ::aie::store_v(y_ptr + (posn / 2), y_temp);
                         ::aie::store_v(uv_ptr + (posn / 2), uv_temp);
                     }
@@ -67,8 +69,7 @@ __attribute__((noinline)) void yuy2_filter2D(adf::input_buffer<int16_t>& img_in,
     }
 
     // filter
-    filter2D_aieml((int16_t*)y_ptr, coeff, (int16_t*)y_filtered_ptr, image_width / 2, image_width / 2,
-                            image_height);
+    filter2D_aieml((int16_t*)y_ptr, coeff_in, (int16_t*)y_filtered_ptr, image_width / 2, image_width / 2, image_height);
 
     // zip
     {
@@ -86,11 +87,6 @@ __attribute__((noinline)) void yuy2_filter2D(adf::input_buffer<int16_t>& img_in,
                     }
             }
     }
-
-    // free(y_buff);
-    // free(y_filtered_buff);
-    // free(uv_buff);
-    // std::cout<<"Freed memory."<<std::endl;
 }
 }
 }

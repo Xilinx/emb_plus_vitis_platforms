@@ -1,5 +1,5 @@
-/**
-* Copyright (C) 2024 Advanced Micro Devices, Inc.
+/*
+* Copyright (C) 2025 Advanced Micro Devices, Inc.
 * SPDX-License-Identifier: MIT
 */
 
@@ -13,6 +13,6 @@
 // SRS shift used can be increased if input data likewise adjusted) // should be same as one in xf_yuy2_filter2d.hpp
 #define SRS_SHIFT 10
 
-void filter2D(adf::input_buffer<int16>& input, adf::output_buffer<int16>& output);
+void yuy2_filter2D(adf::input_buffer<int16>& input, adf::input_buffer<int16> &coeff, adf::output_buffer<int16>& output);
 
 #endif

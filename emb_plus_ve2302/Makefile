@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 Advanced Micro Devices, Inc.
+# Copyright (C) 2023 - 2025 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 CP = cp -f
@@ -10,7 +10,7 @@ SECURE ?= 0
 
 # the platform directory has to be an absolute path when passed to v++
 PFM_DIR = $(PWD)/platforms
-PFM_VER = 202520_1
+PFM_VER = 202610_1
 
 # valid platforms / overlays
 PFM_LIST += ve2302_pcie_qdma

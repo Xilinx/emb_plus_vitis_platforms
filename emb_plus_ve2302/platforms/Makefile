@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Advanced Micro Devices, Inc.
+# Copyright (C) 2023 - 2025 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 CP = cp -rf
@@ -9,7 +9,7 @@ XSCT = $(XILINX_VITIS)/bin/xsct
 JOBS ?= 8
 SECURE ?= 0
 PLATFORM ?= ve2302_pcie_qdma
-VERSION ?= 202520_1
+VERSION ?= 202610_1
 VIV_DESIGN = ve2302_pcie_qdma
 
 ifeq ($(SECURE),1)

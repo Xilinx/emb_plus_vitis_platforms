@@ -693,10 +693,10 @@ proc create_root_design { parentCell } {
   connect_bd_net -net resetn_pl_axi_net [get_bd_pins reset_controllers/resetn_pl_axi] [get_bd_pins axi_gpio_null_user/s_axi_aresetn]
   connect_bd_net -net resetn_pl_axi_net [get_bd_pins reset_controllers/resetn_pl_axi] [get_bd_pins axi_ic_user/aresetn]
 
-  set_property PFM.XRT_ENDPOINT \
-    [dict create \
-      S_AXI [dict create ep_debug_hub_user_00 [dict create reg_abs "xilinx.com:reg_abs:debug_hub:1.0"]] \
-    ] [get_bd_cells axi_dbg_hub]
+#  set_property PFM.XRT_ENDPOINT \
+#    [dict create \
+#      S_AXI [dict create ep_debug_hub_user_00 [dict create reg_abs "xilinx.com:reg_abs:debug_hub:1.0"]] \
+#    ] [get_bd_cells axi_dbg_hub]
 
   # Create address segments
   assign_bd_address -offset 0x20200000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces BLP_S_AXI_CTRL_USER_00]   [get_bd_addr_segs axi_gpio_null_user/S_AXI/Reg]

@@ -62,7 +62,8 @@ endif
 
 
 # Special processing for tool version/platform type
-VITIS_VER = $(shell v++ --version | grep 'v++' | sed 's/^[[:space:]]*//' | sed -e 's/^[*]* v++ v//g' | cut -d " " -f1)
+# Extract major.minor only (e.g., 2025.2 from 2025.2.1) to avoid expr syntax error with multiple dots
+VITIS_VER = $(shell v++ --version | grep 'v++' | sed 's/^[[:space:]]*//' | sed -e 's/^[*]* v++ v//g' | cut -d " " -f1 | cut -d. -f1,2)
 # 1) for versal flow from 2022.1
 DEVICE_TYPE = $(shell platforminfo -p $(PLATFORM) | grep 'FPGA Family' | sed 's/.*://' | sed '/ai_engine/d' | sed 's/^[[:space:]]*//')
 ifeq ($(DEVICE_TYPE), versal)

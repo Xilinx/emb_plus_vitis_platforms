@@ -13,7 +13,7 @@ RM = rm -rf
 MV = mv
 PYTHON = python3
 META_GEN = $(COMMON_PATH)/gen_metadata.py
-VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma
+VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_xdma
 XUTIL = xclbinutil 
 
 # Kernel name
@@ -42,7 +42,7 @@ XSA_FILE = $(KERNEL).xsa
 MAINTAINER = AMD
 BOARD = ve2302
 BUILD_DIR = xrt-$(KERNEL)-dma-test-$(BOARD)
-DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
+DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_xdma/base/test/
 
 VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
 ULP_CONFIG = $(VIV_DIR)/scripts/ulp.tcl
@@ -109,6 +109,7 @@ clean:
 	-$(RM) *.link_summary* *.package_summary* *.ltx
 	-$(RM) $(BUILD_DIR) $(DEB_FILE)
 	-@$(RM) $(META_JSON) *data.txt
+	-@$(RM) analyzer_input
 
 
 

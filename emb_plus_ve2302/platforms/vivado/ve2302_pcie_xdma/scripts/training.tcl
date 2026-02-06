@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 Advanced Micro Devices, Inc.
+# Copyright (C) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 ################################################################
@@ -100,14 +100,14 @@ set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\
 xilinx.com:ip:util_ff:*\
-xilinx.com:ip:xlconstant:*\
+xilinx.com:inline_hdl:ilconstant:*\
 xilinx.com:ip:axi_dbg_hub:*\
 xilinx.com:ip:axi_gpio:*\
 xilinx.com:ip:smartconnect:*\
 xilinx.com:ip:axi_noc:*\
 xilinx.com:ip:ai_engine:*\
 xilinx.com:ip:axi_vip:*\
-xilinx.com:ip:xlconcat:*\
+xilinx.com:inline_hdl:ilconcat:*\
 xilinx.com:ip:proc_sys_reset:*\
 "
 
@@ -227,7 +227,7 @@ proc create_hier_cell_reset_controllers { parentCell nameHier } {
 
 
   # Create instance: rstn_const, and set properties
-  set rstn_const [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant rstn_const ]
+  set rstn_const [ create_bd_cell -type inline_hdl -vlnv xilinx.com:inline_hdl:ilconstant rstn_const ]
   set_property -dict [list \
     CONFIG.CONST_VAL {1} \
     CONFIG.CONST_WIDTH {1} \
@@ -303,12 +303,12 @@ proc create_hier_cell_kernel_interrupt { parentCell nameHier } {
   create_bd_pin -dir O -from 32 -to 0 xlconcat_interrupt_dout
 
   # Create instance: xlconcat_0, and set properties
-  set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat xlconcat_0 ]
+  set xlconcat_0 [ create_bd_cell -type inline_hdl -vlnv xilinx.com:inline_hdl:ilconcat xlconcat_0 ]
   set_property CONFIG.IN0_WIDTH {32} $xlconcat_0
 
 
   # Create instance: xlconstant_0, and set properties
-  set xlconstant_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant xlconstant_0 ]
+  set xlconstant_0 [ create_bd_cell -type inline_hdl -vlnv xilinx.com:inline_hdl:ilconstant xlconstant_0 ]
   set_property -dict [list \
     CONFIG.CONST_VAL {0} \
     CONFIG.CONST_WIDTH {1} \
@@ -434,7 +434,7 @@ proc create_root_design { parentCell } {
    CONFIG.COMPUTED_STRATEGY {load} \
    CONFIG.INI_STRATEGY {load} \
    ] $BLP_M_M00_INI_0
-  set_property APERTURES {{0x500_0000_0000 6G}} [get_bd_intf_ports BLP_M_M00_INI_0]
+  set_property APERTURES {{0x500_4000_0000 5G}} [get_bd_intf_ports BLP_M_M00_INI_0]
   set_property HDL_ATTRIBUTE.LOCKED {TRUE} [get_bd_intf_ports BLP_M_M00_INI_0]
 
   set BLP_M_M01_INI_0 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:inimm_rtl:1.0 -portmaps { \
@@ -446,20 +446,8 @@ proc create_root_design { parentCell } {
    CONFIG.COMPUTED_STRATEGY {load} \
    CONFIG.INI_STRATEGY {load} \
    ] $BLP_M_M01_INI_0
-  set_property APERTURES {{0x500_0000_0000 6G}} [get_bd_intf_ports BLP_M_M01_INI_0]
+  set_property APERTURES {{0x500_4000_0000 5G}} [get_bd_intf_ports BLP_M_M01_INI_0]
   set_property HDL_ATTRIBUTE.LOCKED {TRUE} [get_bd_intf_ports BLP_M_M01_INI_0]
-
-  set BLP_M_M02_INI_0 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:inimm_rtl:1.0 -portmaps { \
-   INTERNOC { physical_name BLP_M_M02_INI_0_internoc direction O left 0 right 0 } \
-   } \
-  BLP_M_M02_INI_0 ]
-  set_property -dict [ list \
-   CONFIG.ADDR_WIDTH {64} \
-   CONFIG.COMPUTED_STRATEGY {load} \
-   CONFIG.INI_STRATEGY {load} \
-   ] $BLP_M_M02_INI_0
-  set_property APERTURES {{0x500_0000_0000 6G}} [get_bd_intf_ports BLP_M_M02_INI_0]
-  set_property HDL_ATTRIBUTE.LOCKED {TRUE} [get_bd_intf_ports BLP_M_M02_INI_0]
 
   set BLP_S_INI_DBG_00 [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:inimm_rtl:1.0 -portmaps { \
    INTERNOC { physical_name BLP_S_INI_DBG_00_internoc direction I left 0 right 0 } \
@@ -527,7 +515,7 @@ proc create_root_design { parentCell } {
 
 
   # Create instance: ip_gnd_ext_tog_kernel_00_null, and set properties
-  set ip_gnd_ext_tog_kernel_00_null [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant ip_gnd_ext_tog_kernel_00_null ]
+  set ip_gnd_ext_tog_kernel_00_null [ create_bd_cell -type inline_hdl -vlnv xilinx.com:inline_hdl:ilconstant ip_gnd_ext_tog_kernel_00_null ]
   set_property -dict [list \
     CONFIG.CONST_VAL {0} \
     CONFIG.CONST_WIDTH {1} \
@@ -535,7 +523,7 @@ proc create_root_design { parentCell } {
 
 
   # Create instance: ip_gnd_ext_tog_kernel_01_null, and set properties
-  set ip_gnd_ext_tog_kernel_01_null [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant ip_gnd_ext_tog_kernel_01_null ]
+  set ip_gnd_ext_tog_kernel_01_null [ create_bd_cell -type inline_hdl -vlnv xilinx.com:inline_hdl:ilconstant ip_gnd_ext_tog_kernel_01_null ]
   set_property -dict [list \
     CONFIG.CONST_VAL {0} \
     CONFIG.CONST_WIDTH {1} \
@@ -579,12 +567,12 @@ proc create_root_design { parentCell } {
 
   set_property -dict [ list \
    CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
+   CONFIG.APERTURES {{0x500_4000_0000 5G}} \
  ] [get_bd_intf_pins /axi_noc_kernel0/M00_INI]
 
   set_property -dict [ list \
    CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
+   CONFIG.APERTURES {{0x500_4000_0000 5G}} \
  ] [get_bd_intf_pins /axi_noc_kernel0/M01_INI]
 
   set_property -dict [ list \
@@ -652,7 +640,7 @@ proc create_root_design { parentCell } {
  ] [get_bd_intf_pins /ai_engine_0/S00_AXI]
 
   # Create instance: const_1, and set properties
-  set const_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant const_1 ]
+  set const_1 [ create_bd_cell -type inline_hdl -vlnv xilinx.com:inline_hdl:ilconstant const_1 ]
   set_property CONFIG.CONST_VAL {0} $const_1
 
 
@@ -730,61 +718,6 @@ proc create_root_design { parentCell } {
     CONFIG.WUSER_WIDTH {0} \
   ] $axi_vip_1
 
-
-  # Create instance: axi_vip_2, and set properties
-  set axi_vip_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vip axi_vip_2 ]
-  set_property -dict [list \
-    CONFIG.ADDR_WIDTH {64} \
-    CONFIG.ARUSER_WIDTH {0} \
-    CONFIG.AWUSER_WIDTH {0} \
-    CONFIG.BUSER_WIDTH {0} \
-    CONFIG.DATA_WIDTH {32} \
-    CONFIG.HAS_BRESP {1} \
-    CONFIG.HAS_BURST {1} \
-    CONFIG.HAS_CACHE {1} \
-    CONFIG.HAS_LOCK {1} \
-    CONFIG.HAS_PROT {1} \
-    CONFIG.HAS_QOS {1} \
-    CONFIG.HAS_REGION {1} \
-    CONFIG.HAS_RRESP {1} \
-    CONFIG.HAS_WSTRB {1} \
-    CONFIG.ID_WIDTH {0} \
-    CONFIG.INTERFACE_MODE {MASTER} \
-    CONFIG.PROTOCOL {AXI4} \
-    CONFIG.READ_WRITE_MODE {READ_WRITE} \
-    CONFIG.RUSER_WIDTH {0} \
-    CONFIG.SUPPORTS_NARROW {1} \
-    CONFIG.WUSER_WIDTH {0} \
-  ] $axi_vip_2
-
-
-  # Create instance: axi_noc_kernel1, and set properties
-  set axi_noc_kernel1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_noc axi_noc_kernel1 ]
-  set_property -dict [list \
-    CONFIG.NUM_CLKS {1} \
-    CONFIG.NUM_MI {0} \
-    CONFIG.NUM_NMI {1} \
-    CONFIG.NUM_NSI {0} \
-    CONFIG.NUM_SI {1} \
-  ] $axi_noc_kernel1
-
-  set_property HDL_ATTRIBUTE.DPA_TRACE_SLAVE {true} [get_bd_cells axi_noc_kernel1]
-
-  set_property -dict [ list \
-   CONFIG.INI_STRATEGY {load} \
-   CONFIG.APERTURES {{0x500_0000_0000 6G}} \
- ] [get_bd_intf_pins /axi_noc_kernel1/M00_INI]
-
-  set_property -dict [ list \
-   CONFIG.CONNECTIONS {M00_INI {read_bw {500} write_bw {500}}} \
-   CONFIG.NOC_PARAMS {} \
-   CONFIG.CATEGORY {pl} \
- ] [get_bd_intf_pins /axi_noc_kernel1/S00_AXI]
-
-  set_property -dict [ list \
-   CONFIG.ASSOCIATED_BUSIF {S00_AXI} \
- ] [get_bd_pins /axi_noc_kernel1/aclk0]
-
   # Create interface connections
   connect_bd_intf_net -intf_net BLP_S_AXI_CTRL_USER_00_1 [get_bd_intf_ports BLP_S_AXI_CTRL_USER_00] [get_bd_intf_pins axi_ic_user/S00_AXI]
   connect_bd_intf_net -intf_net BLP_S_INI_AIE_00_1 [get_bd_intf_ports BLP_S_INI_AIE_00] [get_bd_intf_pins axi_noc_aie_prog/S00_INI]
@@ -794,15 +727,13 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net axi_ic_user_M00_AXI [get_bd_intf_pins axi_ic_user/M00_AXI] [get_bd_intf_pins axi_gpio_null_user/S_AXI]
   connect_bd_intf_net -intf_net axi_noc_aie_prog_M00_AXI [get_bd_intf_pins axi_noc_aie_prog/M00_AXI] [get_bd_intf_pins ai_engine_0/S00_AXI]
   connect_bd_intf_net -intf_net axi_noc_h2c_M00_AXI [get_bd_intf_pins axi_dbg_hub/S_AXI] [get_bd_intf_pins axi_noc_h2c/M00_AXI]
-  connect_bd_intf_net -intf_net axi_noc_kernel1_M00_INI [get_bd_intf_ports BLP_M_M02_INI_0] [get_bd_intf_pins axi_noc_kernel1/M00_INI]
   connect_bd_intf_net -intf_net axi_vip_0_M_AXI [get_bd_intf_pins axi_vip_0/M_AXI] [get_bd_intf_pins axi_noc_kernel0/S00_AXI]
   connect_bd_intf_net -intf_net axi_vip_1_M_AXI [get_bd_intf_pins axi_vip_1/M_AXI] [get_bd_intf_pins axi_noc_kernel0/S01_AXI]
-  connect_bd_intf_net -intf_net axi_vip_2_M_AXI [get_bd_intf_pins axi_noc_kernel1/S00_AXI] [get_bd_intf_pins axi_vip_2/M_AXI]
 
   # Create port connections
   connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_0/aresetn]
   connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_1/aresetn]
-  connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_2/aresetn]
+  # connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_2/aresetn]
 
   connect_bd_net -net ai_engine_0_s00_axi_aclk [get_bd_pins ai_engine_0/s00_axi_aclk] [get_bd_pins axi_noc_aie_prog/aclk0]
   connect_bd_net -net blp_m_ext_tog_ctrl_kernel_00_enable_net [get_bd_pins ip_gnd_ext_tog_kernel_00_null/dout] [get_bd_ports blp_m_ext_tog_ctrl_kernel_00_enable]
@@ -812,9 +743,9 @@ proc create_root_design { parentCell } {
   connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins reset_controllers/clk_pl_axi]
   connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_vip_0/aclk]
   connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_vip_1/aclk]
-  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_vip_2/aclk]
+  # connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_vip_2/aclk]
   connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_noc_kernel0/aclk0]
-  connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_noc_kernel1/aclk0]
+  # connect_bd_net -net blp_s_aclk_ctrl_00_1 [get_bd_ports blp_s_aclk_ctrl_00] [get_bd_pins axi_noc_kernel1/aclk0]
   connect_bd_net -net blp_s_aclk_ext_tog_kernel_00_net [get_bd_ports blp_s_aclk_ext_tog_kernel_00] [get_bd_pins ip_pipe_ext_tog_kernel_00_null/clk]
   connect_bd_net -net blp_s_aclk_ext_tog_kernel_01_net [get_bd_ports blp_s_aclk_ext_tog_kernel_01] [get_bd_pins ip_pipe_ext_tog_kernel_01_null/clk]
   connect_bd_net -net blp_s_aclk_kernel_00_1 [get_bd_ports blp_s_aclk_kernel_00] [get_bd_pins reset_controllers/clk_kernel0]
@@ -835,9 +766,9 @@ proc create_root_design { parentCell } {
   connect_bd_net -net resetn_pl_axi_net [get_bd_pins reset_controllers/resetn_pl_axi] [get_bd_pins axi_ic_user/aresetn]
 
   # Create address segments
-  assign_bd_address -offset 0x050000000000 -range 0x000180000000 -target_address_space [get_bd_addr_spaces axi_vip_0/Master_AXI] [get_bd_addr_segs BLP_M_M00_INI_0/Reg] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000180000000 -target_address_space [get_bd_addr_spaces axi_vip_1/Master_AXI] [get_bd_addr_segs BLP_M_M01_INI_0/Reg] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000180000000 -target_address_space [get_bd_addr_spaces axi_vip_2/Master_AXI] [get_bd_addr_segs BLP_M_M02_INI_0/Reg] -force
+  assign_bd_address -offset 0x050040000000 -range 0x000140000000 -target_address_space [get_bd_addr_spaces axi_vip_0/Master_AXI] [get_bd_addr_segs BLP_M_M00_INI_0/Reg] -force
+  assign_bd_address -offset 0x050040000000 -range 0x000140000000 -target_address_space [get_bd_addr_spaces axi_vip_1/Master_AXI] [get_bd_addr_segs BLP_M_M01_INI_0/Reg] -force
+  # assign_bd_address -offset 0x050000000000 -range 0x000180000000 -target_address_space [get_bd_addr_spaces axi_vip_2/Master_AXI] [get_bd_addr_segs BLP_M_M02_INI_0/Reg] -force
   assign_bd_address -offset 0x020200000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces BLP_S_AXI_CTRL_USER_00] [get_bd_addr_segs axi_gpio_null_user/S_AXI/Reg] -force
   assign_bd_address -offset 0x020000000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces BLP_S_INI_AIE_00] [get_bd_addr_segs ai_engine_0/S00_AXI/AIE_ARRAY_0] -force
   assign_bd_address -offset 0x020205800000 -range 0x00200000 -target_address_space [get_bd_addr_spaces BLP_S_INI_DBG_00] [get_bd_addr_segs axi_dbg_hub/S_AXI_DBG_HUB/Mem0] -force
@@ -847,7 +778,7 @@ proc create_root_design { parentCell } {
   current_bd_instance $oldCurInst
 
   # Create PFM attributes
-  set_property PFM.CLOCK {blp_s_aclk_ctrl_00 {id "2" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_fixed" status "fixed" freq_hz "99999901"}} [get_bd_ports /blp_s_aclk_ctrl_00]
+  set_property PFM.CLOCK {blp_s_aclk_ctrl_00 {id "2" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_fixed" status "fixed" freq_hz "99999908"}} [get_bd_ports /blp_s_aclk_ctrl_00]
   set_property PFM.CLOCK {blp_s_aclk_kernel_00 {id "0" is_default "true" proc_sys_reset "/reset_controllers/reset_sync_kernel0" status "scalable" freq_hz "299996999"}} [get_bd_ports /blp_s_aclk_kernel_00]
   set_property PFM.CLOCK {blp_s_aclk_kernel_01 {id "1" is_default "false" proc_sys_reset "/reset_controllers/reset_sync_kernel1" status "scalable" freq_hz "249997499"}} [get_bd_ports /blp_s_aclk_kernel_01]
   set_property PFM.AXI_PORT {M01_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M02_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M03_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M04_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M05_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M06_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M07_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M08_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M09_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"} M10_AXI {memport "M_AXI_GP" sptag "" memory "" is_range "true"}} [get_bd_cells /axi_ic_user]

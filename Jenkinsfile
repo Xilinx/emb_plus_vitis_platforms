@@ -322,18 +322,18 @@ pipeline {
                 }
             }
             parallel {
-                stage('ve2302_pcie_qdma')  {
+                stage('ve2302_pcie_xdma')  {
                     environment {
-                        pfm_name="ve2302_pcie_qdma"
+                        pfm_name="ve2302_pcie_xdma"
                         work_dir="${ws}/build/${pfm_name}"
                     }
                     steps {
                         createWorkDir()
                     }
                 }
-                stage('ve2302_pcie_qdma secure')  {
+                stage('ve2302_pcie_xdma secure')  {
                     environment {
-                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm_name="ve2302_pcie_xdma_secure"
                         work_dir="${ws}/build/${pfm_name}"
                     }
                     steps {
@@ -344,10 +344,10 @@ pipeline {
         }
         stage('Build Platforms') {
             parallel {
-                stage('ve2302_pcie_qdma platform build')  {
+                stage('ve2302_pcie_xdma platform build')  {
                     environment {
-                        pfm_base="ve2302_pcie_qdma"
-                        pfm_name="ve2302_pcie_qdma"
+                        pfm_base="ve2302_pcie_xdma"
+                        pfm_name="ve2302_pcie_xdma"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -358,7 +358,7 @@ pipeline {
                     }
                     when {
                         anyOf {
-                            changeset "**/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma/**"
+                            changeset "**/emb_plus_ve2302/platforms/vivado/ve2302_pcie_xdma/**"
                             triggeredBy 'TimerTrigger'
                             triggeredBy 'UserIdCause'
                         }
@@ -377,10 +377,10 @@ pipeline {
                         }
                     }
                 }
-                stage('ve2302_pcie_qdma secure platform build')  {
+                stage('ve2302_pcie_xdma secure platform build')  {
                     environment {
-                        pfm_base="ve2302_pcie_qdma"
-                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm_base="ve2302_pcie_xdma"
+                        pfm_name="ve2302_pcie_xdma_secure"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -391,7 +391,7 @@ pipeline {
                     }
                     when {
                         anyOf {
-                            changeset "**/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma/**"
+                            changeset "**/emb_plus_ve2302/platforms/vivado/ve2302_pcie_xdma/**"
                             triggeredBy 'TimerTrigger'
                             triggeredBy 'UserIdCause'
                         }
@@ -416,7 +416,7 @@ pipeline {
             parallel {
                 stage('filter2d_pl overlay build') {
                     environment {
-                        pfm_name="ve2302_pcie_qdma"
+                        pfm_name="ve2302_pcie_xdma"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -443,7 +443,7 @@ pipeline {
                 }
                 stage('filter2d_pl secure overlay build') {
                     environment {
-                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm_name="ve2302_pcie_xdma_secure"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -470,7 +470,7 @@ pipeline {
                 }
                 stage('verify_test overlay build') {
                     environment {
-                        pfm_name="ve2302_pcie_qdma"
+                        pfm_name="ve2302_pcie_xdma"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -497,7 +497,7 @@ pipeline {
                 }
                 stage('verify_test secure overlay build') {
                     environment {
-                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm_name="ve2302_pcie_xdma_secure"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -524,7 +524,7 @@ pipeline {
                 }
                 stage('bandwidth_test overlay build') {
                     environment {
-                        pfm_name="ve2302_pcie_qdma"
+                        pfm_name="ve2302_pcie_xdma"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -551,7 +551,7 @@ pipeline {
                 }
                 stage('bandwidth_test secure overlay build') {
                     environment {
-                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm_name="ve2302_pcie_xdma_secure"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -578,7 +578,7 @@ pipeline {
                 }
                 stage('validate_aie2_pl overlay build') {
                     environment {
-                        pfm_name="ve2302_pcie_qdma"
+                        pfm_name="ve2302_pcie_xdma"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -605,7 +605,7 @@ pipeline {
                 }
                 stage('validate_aie2_pl secure overlay build') {
                     environment {
-                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm_name="ve2302_pcie_xdma_secure"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -632,7 +632,7 @@ pipeline {
                 }
                 stage('filter2d_aie overlay build') {
                     environment {
-                        pfm_name="ve2302_pcie_qdma"
+                        pfm_name="ve2302_pcie_xdma"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"
@@ -659,7 +659,7 @@ pipeline {
                 }
                 stage('filter2d_aie secure overlay build') {
                     environment {
-                        pfm_name="ve2302_pcie_qdma_secure"
+                        pfm_name="ve2302_pcie_xdma_secure"
                         pfm="xilinx_${pfm_name}_${pfm_ver}"
                         work_dir="${ws}/build/${pfm_name}"
                         board="emb_plus_ve2302"

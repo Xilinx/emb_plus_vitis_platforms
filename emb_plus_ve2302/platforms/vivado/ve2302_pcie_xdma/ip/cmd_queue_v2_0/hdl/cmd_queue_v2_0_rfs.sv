@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Advanced Micro Devices, Inc.
+// Copyright (C) 2026 Advanced Micro Devices, Inc.
 // SPDX-License-Identifier: MIT
 
 interface cmd_queue_v2_0_0_axi_if #(

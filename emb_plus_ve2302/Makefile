@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 Advanced Micro Devices, Inc.
+# Copyright (C) 2023 - 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 CP = cp -f
@@ -13,14 +13,14 @@ PFM_DIR = $(PWD)/platforms
 PFM_VER = 202610_1
 
 # valid platforms / overlays
-PFM_LIST += ve2302_pcie_qdma
+PFM_LIST += ve2302_pcie_xdma
 OVERLAY_LIST += filter2d_pl bandwidth_test validate_aie2_pl verify_test filter2d_aie
 
 VITIS_DIR = overlays/examples
 VITIS_OVERLAY_DIR = $(VITIS_DIR)/$(OVERLAY)
 VITIS_OVERLAY_BIT = $(VITIS_OVERLAY_DIR)/binary_container_1/link/int/system.bit
 
-PFM_NAME = ve2302_pcie_qdma
+PFM_NAME = ve2302_pcie_xdma
 
 .PHONY: help
 help:
@@ -44,7 +44,7 @@ help:
 
 # override platform name based on overlay
 ifneq ($(filter $(OVERLAY), $(OVERLAY_LIST)),)
-  PFM = ve2302_pcie_qdma
+  PFM = ve2302_pcie_xdma
 endif
 
 ifeq ($(SECURE),1)

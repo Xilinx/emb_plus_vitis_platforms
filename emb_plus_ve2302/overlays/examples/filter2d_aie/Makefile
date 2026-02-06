@@ -12,7 +12,7 @@ RMDIR = rm -rf
 MV = mv
 PYTHON = python3
 META_GEN = $(COMMON_PATH)/gen_metadata.py
-VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma
+VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_xdma
 XUTIL = xclbinutil
 META_JSON =  $(CURDIR)/filter2d_aie_partition_metadata.json
 PLATFORM ?=
@@ -74,7 +74,7 @@ XSA_FILE = $(BUILD_DIR)/filter2d_aie.xsa
 BINARY_CONTAINERS = $(TEMP_DIR)/link/int/filter2d_aie.xclbin
 XCLBIN_FILE = $(CURDIR)/filter2d_aie.xclbin
 DEB_BUILD_DIR = filter2d-aie-$(BOARD)
-DEB_DIR = $(DEB_BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
+DEB_DIR = $(DEB_BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_xdma/base/test/
 VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
 ULP_CONFIG = $(VIV_DIR)/scripts/ulp.tcl
 VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi
@@ -154,4 +154,5 @@ clean:
 	-$(RMDIR) $(CURDIR)/Work  $(CURDIR)/reports $(BUILD_DIR)
 	-$(RMDIR) $(DEB_BUILD_DIR) $(DEB_FILE)
 	-$(RMDIR) $(META_JSON) *data.txt
+	-$(RMDIR) analyzer_input baremetal_metadata_package.cpp
 

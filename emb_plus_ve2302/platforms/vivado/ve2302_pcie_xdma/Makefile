@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025, Advanced Micro Devices, Inc.
+# Copyright (C) 2023 - 2026, Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 RM = rm -rf
@@ -18,9 +18,9 @@ VIV_TIMING_ERROR = "CRITICAL WARNING: \[Timing 38-282\] The design failed to mee
 UUID = $(UUID_PROD)
 
 ifeq ($(SECURE),1)
-  VIV_DESIGN = ve2302_pcie_qdma_secure
+  VIV_DESIGN = ve2302_pcie_xdma_secure
 else
-  VIV_DESIGN = ve2302_pcie_qdma
+  VIV_DESIGN = ve2302_pcie_xdma
 endif
 
 

@@ -9,7 +9,7 @@ REPO_PATH = $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(CU
 COMMON_PATH = $(REPO_PATH)/common
 PYTHON = python3
 META_GEN = $(COMMON_PATH)/gen_metadata.py
-VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma
+VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_xdma
 XUTIL = xclbinutil 
 META_JSON =  $(CURDIR)/filter2d_pl_partition_metadata.json
 
@@ -35,7 +35,7 @@ BOARD = ve2302
 EXAMPLE = filter2d-pl
 CONTROL_FILE = $(BUILD_DIR)/DEBIAN/control
 BUILD_DIR = $(EXAMPLE)-$(BOARD)
-DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
+DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_xdma/base/test/
 VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
 ULP_CONFIG = $(VIV_DIR)/scripts/ulp.tcl
 VIV_PDI = $(CURDIR)/_x/link/int/partial.pdi
@@ -84,6 +84,7 @@ clean: clean-subdirs
 	-$(RM) *.link_summary* *.package_summary* *.ltx
 	-$(RM) $(BUILD_DIR) $(DEB_FILE)
 	-$(RM) $(META_JSON) *data.txt
+	-$(RM) analyzer_input
 
 clean-subdirs:
 	$(MAKE) -C kernel clean

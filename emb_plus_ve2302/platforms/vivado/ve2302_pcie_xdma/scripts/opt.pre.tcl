@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Advanced Micro Devices, Inc.
+# Copyright (C) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 # CR-1125650 Disable the SLVERR output from the axi_uartlite in response to a read from an empty FIFO (or write to a full FIFO)

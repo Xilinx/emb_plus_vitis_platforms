@@ -10,7 +10,7 @@ To create the Vitis platform, run the following command:
 make platform PLATFORM=<platform_name>
 ```
 Options for platform_name are
-   - ve2302_pcie_qdma
+   - ve2302_pcie_xdma
 
 
 The Makefile uses the XSA from the vivado project to generate a platform.
@@ -29,6 +29,6 @@ connect to.
 Note: The software components (boot, smp_linux etc) in this platform
       are empty. The software components will be generated later.
 
-Copyright (C) 2023, Advanced Micro Devices, Inc.\
+Copyright (C) 2023 - 2026, Advanced Micro Devices, Inc.\
 SPDX-License-Identifier: MIT
 

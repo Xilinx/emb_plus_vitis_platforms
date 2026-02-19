@@ -2072,7 +2072,7 @@ connect_bd_intf_net [get_bd_intf_pins ch1_lpddr4_trip1] [get_bd_intf_pins axi_no
   connect_bd_intf_net -intf_net xdma_0_support_pcie_cfg_mesg_rcvd [get_bd_intf_pins xdma_0/pcie4_cfg_mesg_rcvd] [get_bd_intf_pins xdma_0_support/pcie_cfg_mesg_rcvd]
   connect_bd_intf_net -intf_net xdma_0_support_pcie_cfg_mesg_tx [get_bd_intf_pins xdma_0/pcie4_cfg_mesg_tx] [get_bd_intf_pins xdma_0_support/pcie_cfg_mesg_tx]
   connect_bd_intf_net -intf_net xdma_0_support_pcie_cfg_status [get_bd_intf_pins xdma_0/pcie_cfg_status_if] [get_bd_intf_pins xdma_0_support/pcie_cfg_status]
-  connect_bd_intf_net -intf_net qdma_0_support_pcie_mgt_gt_pciea0 [get_bd_intf_pins gt_pciea0] [get_bd_intf_pins xdma_0_support/pcie_mgt]
+  connect_bd_intf_net -intf_net xdma_0_support_pcie_mgt_gt_pciea0 [get_bd_intf_pins gt_pciea0] [get_bd_intf_pins xdma_0_support/pcie_mgt]
   connect_bd_intf_net -intf_net xdma_0_support_pcie_transmit_fc [get_bd_intf_pins xdma_0/pcie_transmit_fc] [get_bd_intf_pins xdma_0_support/pcie_transmit_fc]
   connect_bd_intf_net -intf_net xdma_0_M_AXI_LITE [get_bd_intf_pins pf0_remapper_prot_conv/S00_AXI] [get_bd_intf_pins xdma_0/M_AXI_LITE]
   connect_bd_intf_net -intf_net xdma_0_M_AXI_BYPASS [get_bd_intf_pins xdma_0/M_AXI_BYPASS] [get_bd_intf_pins pf1_remapper/s_axi]

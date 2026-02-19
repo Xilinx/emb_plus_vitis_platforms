@@ -116,7 +116,6 @@ create_iso_access -domain /Non_secure access_0
 set_property name {ns_shared_xmpu_aie_pl_dma} [get_iso_accesses /Non_secure/access_0]
 edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smids /ulp/BLP_M_M00_INI_0]
 edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smids /ulp/BLP_M_M01_INI_0]
-edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smids /ulp/BLP_M_M02_INI_0]
 edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smids /blp/cips/AIE ]
 edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smids /blp/axi_noc_ic/S06_AXI ]
 edit_iso_access -access /Non_secure/ns_shared_xmpu_aie_pl_dma -add [get_iso_smids /blp/cips/RPU0 ]

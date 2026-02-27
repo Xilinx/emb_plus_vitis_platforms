@@ -2369,52 +2369,52 @@ proc create_root_design { parentCell} {
 
   # Add XRT_ENDPOINT properties for metadata automation
 
-  set_property PFM.XRT_ENDPOINT \
-    [dict create \
-      S0_AXI ep_mailbox_mgmt_00 \
-      S1_AXI ep_mailbox_user_00 \
-    ] [get_bd_cells /blp/blp_logic/pf_mailbox]
-
-  set_property PFM.XRT_ENDPOINT \
-    [dict create \
-      S00_AXI [dict create ep_xgq_user_to_apu_sq_pi_00 [dict create reg_abs "xilinx.com:reg_abs:xgq:1.2" interrupt irq_cq]] \
-    ] [get_bd_cells /blp/blp_logic/gcq_u2a_0]
-
-  set_property PFM.XRT_ENDPOINT \
-    [dict create \
-      S00_AXI [dict create ep_xgq_mgmt_to_rpu_sq_pi_00 [dict create reg_abs "xilinx.com:reg_abs:xgq:1.2"]] \
-    ] [get_bd_cells /blp/blp_logic/gcq_m2r]
-
-  set_property PFM.XRT_ENDPOINT \
-    [dict create \
-      s_axi_ctrl_pf0 ep_bar_layout_mgmt_00 \
-      s_axi_ctrl_pf1 ep_bar_layout_user_00 \
-    ] [get_bd_cells /blp/blp_logic/hw_discovery]
-
-  set_property PFM.XRT_ENDPOINT \
-    [dict create \
-      S1_AXI ep_blp_rom_00 \
-    ] [get_bd_cells /blp/blp_logic/uuid_register]
-
-  set_property PFM.XRT_ENDPOINT \
-    [dict create \
-      S_AXI ep_pmc_mux_00 \
-    ] [get_bd_cells /blp/blp_logic/base_clocking/force_reset_gpio]
-
-  set_property PFM.XRT_ENDPOINT \
-    [dict create \
-      S_AXI ep_ert_debug_uart_00 \
-    ] [get_bd_cells /blp/blp_logic/axi_uart_mgmt_rpu]
-
-  set_property PFM.XRT_ENDPOINT \
-    [dict create \
-      S_AXI ep_ert_debug_uart_01 \
-    ] [get_bd_cells /blp/blp_logic/axi_uart_mgmt_apu0]
-
-  set_property PFM.XRT_ENDPOINT \
-    [dict create \
-      S_AXI [dict create ep_debug_hub_mgmt_00 [dict create reg_abs "xilinx.com:reg_abs:debug_hub:1.0"]] \
-    ] [get_bd_cells /blp/blp_logic/axi_blp_dbg_hub]
+#  set_property PFM.XRT_ENDPOINT \
+#    [dict create \
+#      S0_AXI ep_mailbox_mgmt_00 \
+#      S1_AXI ep_mailbox_user_00 \
+#    ] [get_bd_cells /blp/blp_logic/pf_mailbox]
+#
+#  set_property PFM.XRT_ENDPOINT \
+#    [dict create \
+#      S00_AXI [dict create ep_xgq_user_to_apu_sq_pi_00 [dict create reg_abs "xilinx.com:reg_abs:xgq:1.2" interrupt irq_cq]] \
+#    ] [get_bd_cells /blp/blp_logic/gcq_u2a_0]
+#
+#  set_property PFM.XRT_ENDPOINT \
+#    [dict create \
+#      S00_AXI [dict create ep_xgq_mgmt_to_rpu_sq_pi_00 [dict create reg_abs "xilinx.com:reg_abs:xgq:1.2"]] \
+#    ] [get_bd_cells /blp/blp_logic/gcq_m2r]
+#
+#  set_property PFM.XRT_ENDPOINT \
+#    [dict create \
+#      s_axi_ctrl_pf0 ep_bar_layout_mgmt_00 \
+#      s_axi_ctrl_pf1 ep_bar_layout_user_00 \
+#    ] [get_bd_cells /blp/blp_logic/hw_discovery]
+#
+#  set_property PFM.XRT_ENDPOINT \
+#    [dict create \
+#      S1_AXI ep_blp_rom_00 \
+#    ] [get_bd_cells /blp/blp_logic/uuid_register]
+#
+#  set_property PFM.XRT_ENDPOINT \
+#    [dict create \
+#      S_AXI ep_pmc_mux_00 \
+#    ] [get_bd_cells /blp/blp_logic/base_clocking/force_reset_gpio]
+#
+#  set_property PFM.XRT_ENDPOINT \
+#    [dict create \
+#      S_AXI ep_ert_debug_uart_00 \
+#    ] [get_bd_cells /blp/blp_logic/axi_uart_mgmt_rpu]
+#
+#  set_property PFM.XRT_ENDPOINT \
+#    [dict create \
+#      S_AXI ep_ert_debug_uart_01 \
+#    ] [get_bd_cells /blp/blp_logic/axi_uart_mgmt_apu0]
+#
+#  set_property PFM.XRT_ENDPOINT \
+#    [dict create \
+#      S_AXI [dict create ep_debug_hub_mgmt_00 [dict create reg_abs "xilinx.com:reg_abs:debug_hub:1.0"]] \
+#    ] [get_bd_cells /blp/blp_logic/axi_blp_dbg_hub]
 
   validate_bd_design
   save_bd_design

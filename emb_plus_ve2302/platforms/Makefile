@@ -5,11 +5,13 @@ CP = cp -rf
 MKDIR = mkdir -p
 RM = rm -rf
 MV = mv
-XSCT = $(XILINX_VITIS)/bin/xsct
+VITIS = $(XILINX_VITIS)/bin/vitis
+SDTGEN = $(XILINX_VITIS)/bin/sdtgen
 JOBS ?= 8
 SECURE ?= 0
 PLATFORM ?= ve2302_pcie_xdma
 VERSION ?= 202610_1
+BOARD_DTS ?= versal-emb-plus-ve2302-reva
 VIV_DESIGN = ve2302_pcie_xdma
 
 ifeq ($(SECURE),1)
@@ -23,13 +25,10 @@ VIV_SDT = project_sdt
 VIV_BASE_XSA = $(VIV_DIR)/project/$(VIV_DESIGN)_base.xsa
 
 PFM_DIR = xilinx_$(VIV_DESIGN)_$(VERSION)
-PFM_PRJ_DIR = xsct/$(VIV_XSA_NAME)/$(VIV_XSA_NAME)/export/xilinx_$(VIV_DESIGN)_$(VIV_DESIGN)_1_0
 PFM_SCRIPTS_DIR = scripts
 
-PFM_TCL = $(PFM_SCRIPTS_DIR)/pfm.tcl
+PFM_PY = $(PFM_SCRIPTS_DIR)/pfm.py
 PFM_XPFM = $(PFM_DIR)/$(VIV_DESIGN).xpfm
-
-XSCT_SRC = $(PFM_SCRIPTS_DIR)/gen_sdt.tcl
 
 .PHONY: help
 help:
@@ -58,16 +57,13 @@ all: platform sdt
 .PHONY: platform
 platform: $(PFM_XPFM)
 $(PFM_XPFM): $(VIV_XSA)
-	$(XSCT) $(PFM_TCL) -xsa $(VIV_XSA)
-	@$(CP) $(PFM_PRJ_DIR) $(PFM_DIR)
-# Added MV command because the name of the xpfm is not what we're looking for (not sure why)
-	@$(MV) $(PFM_DIR)/*.xpfm $(PFM_DIR)/$(VIV_DESIGN).xpfm
+	$(VITIS) -s $(PFM_PY) -xsa $(VIV_XSA) -out $(PFM_DIR)
 	@echo 'Vitis platform available at $(PFM_DIR)'
 
 .PHONY: sdt
 sdt: $(VIV_SDT)
 $(VIV_SDT): $(VIV_BASE_XSA)
-	$(XSCT) $(XSCT_SRC) -xsa_path $(VIV_BASE_XSA)
+	$(SDTGEN) -xsa $(VIV_BASE_XSA) -dir $(VIV_SDT) -board_dts $(BOARD_DTS) -debug enable
 
 $(VIV_BASE_XSA): $(VIV_XSA)
 $(VIV_XSA):
@@ -75,6 +71,6 @@ $(VIV_XSA):
 
 .PHONY: clean
 clean:
-	-@$(RM) .Xil boot image linux.bif ws $(PFM_DIR) xsct $(VIV_SDT)
+	-@$(RM) .Xil boot image linux.bif ws $(PFM_DIR) xsct $(VIV_SDT) vitis_journal.py
 	make -C $(VIV_DIR) clean
 

@@ -79,8 +79,8 @@ proc pre_propagate {cellpath undefined_params} {
           puts "\[VSEC-BAR\] ${cell} : Endpoint = ${endpoint}"
           set bar_cell [bd::utils::get_parent [dict get $endpoint intf]]
           if {[string match "xilinx.com:ip:hw_discovery:*" [get_property VLNV $bar_cell]]} {
-            set bar_high_addr [format 0x%08X [expr {wide([dict get $endpoint offset]) >> 32}]]
-            set bar_low_addr [format 0x%07X [expr {(wide([dict get $endpoint offset]) & 0xFFFFFFFF) / 16}]]
+            set bar_high_addr [format 0x%08X [expr [dict get $endpoint offset] >> 32]]
+            set bar_low_addr [format 0x%07X [expr ([dict get $endpoint offset] & 0xFFFFFFFF) / 16]]
             dict set prop_vals CONFIG.C_PF${pf}_BAR_INDEX $bar
             dict set prop_vals CONFIG.C_PF${pf}_HIGH_OFFSET $bar_high_addr
             dict set prop_vals CONFIG.C_PF${pf}_LOW_OFFSET $bar_low_addr
@@ -105,8 +105,8 @@ proc pre_propagate {cellpath undefined_params} {
         set bar_cell [bd::utils::get_parent [dict get $endpoint intf]]
         if {[llength $bar_cell] > 0} {
           if {[string match "xilinx.com:ip:hw_discovery:*" [get_property VLNV $bar_cell]]} {
-            set bar_high_addr [format 0x%08X [expr {wide([dict get ${endpoint} offset]) >> 32}]]
-            set bar_low_addr [format 0x%07X [expr {(wide([dict get ${endpoint} offset]) & 0xFFFFFFFF) / 16}]]
+            set bar_high_addr [format 0x%08X [expr [dict get ${endpoint} offset] >> 32]]
+            set bar_low_addr [format 0x%07X [expr ([dict get ${endpoint} offset] & 0xFFFFFFFF) / 16]]
             dict set prop_vals CONFIG.C_PF${pf}_BAR_INDEX $bar
             dict set prop_vals CONFIG.C_PF${pf}_HIGH_OFFSET $bar_high_addr
             dict set prop_vals CONFIG.C_PF${pf}_LOW_OFFSET $bar_low_addr

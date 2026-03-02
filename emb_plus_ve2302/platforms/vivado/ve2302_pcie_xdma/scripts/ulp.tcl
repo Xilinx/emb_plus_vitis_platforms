@@ -696,7 +696,7 @@ proc create_root_design { parentCell } {
   # Used for metadata generation
   set_property HDL_ATTRIBUTE.DFX_FUNCTION_ID 0 [current_bd_design]
 
-  validate_bd_design
+  validate_bd_design -assign_dfx_addressing
   save_bd_design
 }
 # End of create_root_design()

@@ -2324,6 +2324,8 @@ proc create_root_design { parentCell} {
   assign_bd_address -offset 0x020202010000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/pf1_remapper/m_axi] [get_bd_addr_segs blp/blp_logic/gcq_u2a_0/S00_AXI/S00_AXI_Reg] -force
   assign_bd_address -offset 0x020202001000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/pf1_remapper/m_axi] [get_bd_addr_segs blp/blp_logic/hw_discovery/s_axi_ctrl_pf1/reg0] -force
   assign_bd_address -offset 0x020202000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces blp/pf1_remapper/m_axi] [get_bd_addr_segs blp/blp_logic/pf_mailbox/S1_AXI/S1_AXI_Reg] -force
+  exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces blp/pf1_remapper/m_axi] [get_bd_addr_segs blp/axi_noc_mc_1x/S06_INI/C3_DDR_CH1]
+  exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces blp/pf1_remapper/m_axi] [get_bd_addr_segs blp/axi_noc_mc_1x/S06_INI/C3_DDR_LOW0]
   assign_bd_address -offset 0x00000000 -range 0x000008000000 -target_address_space [get_bd_addr_spaces blp/xdma_0/M_AXI_BYPASS] [get_bd_addr_segs blp/pf1_remapper/s_axi/reg0] -force
   assign_bd_address -offset 0x000000000000 -range 0x10000000 -target_address_space [get_bd_addr_spaces blp/xdma_0/M_AXI_LITE] [get_bd_addr_segs blp/pf0_remapper/s_axi/reg0] -force
   assign_bd_address -offset 0x020105000000 -range 0x00200000 -target_address_space [get_bd_addr_spaces blp/pf0_remapper/m_axi] [get_bd_addr_segs blp/blp_logic/axi_blp_dbg_hub/S_AXI_DBG_HUB/Mem0] -force

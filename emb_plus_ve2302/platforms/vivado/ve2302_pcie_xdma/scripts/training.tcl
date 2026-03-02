@@ -424,6 +424,7 @@ proc create_root_design { parentCell } {
    CONFIG.INI_STRATEGY {load} \
    ] $BLP_S_INI_AIE_00
   set_property HDL_ATTRIBUTE.LOCKED {TRUE} [get_bd_intf_ports BLP_S_INI_AIE_00]
+  set_property APERTURES {{0x200_0000_0000 4G}} [get_bd_intf_ports BLP_S_INI_AIE_00]
 
   set BLP_M_M00_INI_0 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:inimm_rtl:1.0 -portmaps { \
    INTERNOC { physical_name BLP_M_M00_INI_0_internoc direction O left 0 right 0 } \
@@ -731,8 +732,8 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net axi_vip_1_M_AXI [get_bd_intf_pins axi_vip_1/M_AXI] [get_bd_intf_pins axi_noc_kernel0/S01_AXI]
 
   # Create port connections
-  connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_0/aresetn]
-  connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_1/aresetn]
+  connect_bd_net -net resetn_pl_axi_net [get_bd_pins reset_controllers/resetn_pl_axi] [get_bd_pins axi_vip_0/aresetn]
+  connect_bd_net -net resetn_pl_axi_net [get_bd_pins reset_controllers/resetn_pl_axi] [get_bd_pins axi_vip_1/aresetn]
   # connect_bd_net -net Net1 [get_bd_pins reset_controllers/peripheral_aresetn] [get_bd_pins axi_vip_2/aresetn]
 
   connect_bd_net -net ai_engine_0_s00_axi_aclk [get_bd_pins ai_engine_0/s00_axi_aclk] [get_bd_pins axi_noc_aie_prog/aclk0]
@@ -770,7 +771,7 @@ proc create_root_design { parentCell } {
   assign_bd_address -offset 0x050040000000 -range 0x000140000000 -target_address_space [get_bd_addr_spaces axi_vip_1/Master_AXI] [get_bd_addr_segs BLP_M_M01_INI_0/Reg] -force
   # assign_bd_address -offset 0x050000000000 -range 0x000180000000 -target_address_space [get_bd_addr_spaces axi_vip_2/Master_AXI] [get_bd_addr_segs BLP_M_M02_INI_0/Reg] -force
   assign_bd_address -offset 0x020200000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces BLP_S_AXI_CTRL_USER_00] [get_bd_addr_segs axi_gpio_null_user/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020000000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces BLP_S_INI_AIE_00] [get_bd_addr_segs ai_engine_0/S00_AXI/AIE_ARRAY_0] -force
+  assign_bd_address -offset 0x020000000000 -range 0x100000000 -target_address_space [get_bd_addr_spaces BLP_S_INI_AIE_00] [get_bd_addr_segs ai_engine_0/S00_AXI/AIE_ARRAY_0] -force
   assign_bd_address -offset 0x020205800000 -range 0x00200000 -target_address_space [get_bd_addr_spaces BLP_S_INI_DBG_00] [get_bd_addr_segs axi_dbg_hub/S_AXI_DBG_HUB/Mem0] -force
 
 

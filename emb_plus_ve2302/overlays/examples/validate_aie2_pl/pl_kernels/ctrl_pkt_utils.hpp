@@ -7,7 +7,7 @@
 
 #include "ap_axi_sdata.h"
 #include "ap_int.h"
-#include "drivers/aiengine/xaiengine/xaiegbl_params.h"
+#include "drivers/aiengine/aie_codegen_inc/xaiegbl_params.h"
 #include "hls_stream.h"
 #ifndef __HLS_SYNTHESIS__
 #include <stdio.h>

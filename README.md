@@ -17,7 +17,7 @@ git clone --recursive https://github.com/Xilinx/emb_plus_vitis_platforms.git
 This repo contains a DFX platform and multiple overlays.
 
 Platforms list:
-- ve2302_pcie_qdma
+- ve2302_pcie_xdma
 
 Overlays list:
 - bandwidth_test
@@ -28,7 +28,7 @@ Overlays list:
 
 ## Tools Version
 
-This branch is targeting the Vivado and Vitis 2025.1 tools version. Note that
+This branch is targeting the Vivado and Vitis 2026.1 tools version. Note that
 not all platforms and overlays may be validated with this tools version. Consult
 the application specific documentation for the latest validated version.
 
@@ -70,7 +70,7 @@ emb_plus_vitis_platforms
 ¦ ¦  +-- README
 ¦ ¦  +-- scripts
 ¦ ¦  +-- vivado
-¦ ¦  ¦   +-- ve2302_pcie_qdma
+¦ ¦  ¦   +-- ve2302_pcie_xdma
 ¦ +-- Makefile
 +-- README
 ```
@@ -129,7 +129,7 @@ If users are working with released artifacts and do not wish to update
 the OSPI PDI file containing the released platform, they can generate
 overlays against pre-built platforms. The pre-built platforms for each
 release are available in the [released section](https://github.com/Xilinx/emb_plus_vitis_platforms/releases).
-Look for the "xilinx_ve2302_pcie_qdma_*.tar.gz" tarballs.
+Look for the "xilinx_ve2302_pcie_xdma_*.tar.gz" tarballs.
 
 **_NOTE:_** : the current V0.5 and V0.6 releases has identical
 platforms. Therefore for both V0.6 and V0.5 prebuilt platform, look for
@@ -148,8 +148,8 @@ the platform if everything is in order.
 The following are the commands:
 
 ```
-tar -xf xilinx_ve2302_pcie_qdma_<*>.tar.gz
-cp xilinx_ve2302_pcie_qdma_202320_1/ emb_plus_vitis_platforms/emb_plus_ve2302/platforms/ -rf
+tar -xf xilinx_ve2302_pcie_xdma_<*>.tar.gz
+cp xilinx_ve2302_pcie_xdma_202610_1/ emb_plus_vitis_platforms/emb_plus_ve2302/platforms/ -rf
 cd emb_plus_vitis_platforms/emb_plus_ve2302/
 make platform PFM=<platform_name> overlay OVERLAY=<overlay_name>
 ```
@@ -157,6 +157,6 @@ make platform PFM=<platform_name> overlay OVERLAY=<overlay_name>
 
 ## License
 
-(C) Copyright 2023 - 2024, Advanced Micro Devices Inc.\
+(C) Copyright 2023 - 2026, Advanced Micro Devices Inc.\
 SPDX-License-Identifier: MIT
 

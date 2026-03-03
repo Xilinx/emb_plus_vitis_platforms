@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 Advanced Micro Devices, Inc.
+# Copyright (C) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 # Set the necessary Vivado params for the platform build
@@ -34,12 +34,12 @@ for { set i 0 } { $i < $argc } { incr i } {
 }
 
 set part xcve2302-sfva784-2MP-e-S
-set proj_name ve2302_pcie_qdma
+set proj_name ve2302_pcie_xdma
 set proj_board [get_board_parts "*:emb-plus-vpr-4616:*" -latest_file_version]
 
 if {${use_secure}} {
   set_param bd.isolation true
-  set proj_name ve2302_pcie_qdma_secure
+  set proj_name ve2302_pcie_xdma_secure
 }
 
 create_project -name $proj_name -force -dir $proj_dir -part $part
@@ -144,7 +144,7 @@ set_property platform.platform_state                  "impl"                  [c
 set_property platform.uses_pr                         true                    [current_project]
 set_property platform.extensible                      true                    [current_project]
 set_property platform.pcie_id_vendor                  "0x10ee"                [current_project]
-set_property platform.pcie_id_device                  "0x5700"                [current_project]
+set_property platform.pcie_id_device                  "0x5710"                [current_project]
 set_property platform.pcie_id_subsystem               "0x000e"                [current_project]
 set_property platform.dr_inst_path                    "${proj_name}_i/${userBD}" [current_project]
 set_property platform.design_intent.embedded          false                   [current_project]

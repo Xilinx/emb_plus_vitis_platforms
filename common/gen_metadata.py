@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Advanced Micro Devices, Inc.
+# Copyright (C) 2024 - 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 #!/usr/bin/python3
@@ -20,15 +20,26 @@ config_bd_file_path = args.config
 ulp_bd_file_path = args.ulp
 metadata_file_path = args.output
 current_path = os.getcwd()
-generated_file_name = "overlay_partition_metadata.json  " # Generated file name "overlay_partition_metadata.json"
+generated_file_name = "overlay_partition_metadata.json"  # Generated file name
 
+# ----------------------------------------------------------------------------
+# Hardcoded BAR address mapping for XDMA (XDMA does not have pciebar2axibar)
+# Keys are tuples of strings: (pf, bar). Values are 64-bit hex strings.
+# ----------------------------------------------------------------------------
+HARD_CODED_PF_BAR_TO_AXIBAR = {
+    ("0", "0"): "0x0000020100000000",
+    ("0", "2"): "0x0000000000000000",
+    ("0", "4"): "0x0000000000000000",
+    ("1", "0"): "0x0000000000000000",
+    ("1", "2"): "0x0000000000000000",
+    ("1", "4"): "0x0000020200000000",
+}
 
 ### Bootgen variables
 
 uuid_txt_file = "uuid_data.txt"
 uuid_file_path = current_path+"/"+ uuid_txt_file
-cmd = "bootgen -arch versal -read {} > {}" ## Bootgen run and save output to txt file (overwrite old)
-
+cmd = "bootgen -arch versal -read {} > {}"  # Bootgen run and save output to txt file (overwrite old)
 
 ### UUIDs variables
 
@@ -36,14 +47,12 @@ idRegex = re.compile(r'id \(0x18\) : 0x([0-9a-fA-F]+)')
 uniqueIdRegexp = re.compile (r'unique_id \(0x24\) : 0x([0-9a-fA-F]+)')
 parentIdRegexp = re.compile (r'parent_unique_id \(0x28\) : 0x([0-9a-fA-F]+)')
 functionIdRegexp = re.compile (r'function_id \(0x2c\) : 0x([0-9a-fA-F]+)')
-major = "0x1"                                        ### To be determined later
-minor = "0x0"                                        ### To be determined later
+major = "0x1"
+minor = "0x0"
 
-###############################################################
-#         Metadata Variables                                  #
-#                                                             #
-###############################################################
-
+###############################################################################
+#         Metadata Variables                                                  #
+###############################################################################
 
 partition_header_str_1 = '''{
     "partition_metadata":
@@ -84,32 +93,34 @@ romuuid_Regex = re.compile(r'CONFIG.C_INITIAL_UUID \{([0-9a-fA-F]+)\} \\')
 ep_res_mem_Regex = re.compile(r' -offset (0x[0-9a-fA-F]+) -range (0x[0-9a-fA-F]+)')
 pf_Regex = re.compile(r'CONFIG.pf(\d)_bar(\d)_64bit')
 bar_address_Regex = re.compile(r'CONFIG.pf\d_pciebar2axibar_\d {(0x[0-9a-fA-F]+)} \\')
-bar_scale_Regex = re.compile(r'CONFIG.pf\d_bar\d_scale_qdma {([0-9a-zA-Z]+)} \\')
-bar_size_Regex = re.compile(r'CONFIG.pf\d_bar\d_size_qdma {(\d*)} \\')
+
+# XDMA regex patterns (no suffix)
+bar_scale_Regex = re.compile(r'CONFIG.pf\d_bar\d_scale {([0-9a-zA-Z]+)} \\')
+bar_size_Regex  = re.compile(r'CONFIG.pf\d_bar\d_size {(\d*)} \\')
+
 connected_bd_cell_Regex = re.compile (r'get_bd_cells /([0-9a-zA-Z_]+)/([0-9a-zA-Z_]+)/([0-9a-zA-Z_/]+)]')
 simple_bd_cell_Regex = re.compile (r'get_bd_cells ([0-9a-zA-Z_/]+)]')
 only_ep_Regex = re.compile (r'ep_([0-9a-zA-Z_]+)')
 ep_partRegex = re.compile (r'([0-9a-zA-Z_]+) ([dict create)? ep_([0-9a-zA-Z_]+)')
 ep_properties_Regex = re.compile(r' -offset (0x[0-9a-fA-F]+) -range (0x[0-9a-fA-F]+)')
 
-###############################################################
-#                        RAVE Variables                       #
-#                                                             #
-###############################################################
-
+###############################################################################
+#                        RAVE Variables                                       #
+###############################################################################
 
 # Runs bootgen and gets IDs
 def run_bootgen(pdi_file_name,uuid_txt_file):
     command = cmd.format(pdi_file_name, uuid_txt_file)
     os.system(command)
-    return os.path.abspath(uuid_txt_file)       ##Returns absolute path of the file as string
+    return os.path.abspath(uuid_txt_file)
+
 # Extracts IDs
 def extract_uuid(uuid_file_path):
     with open (uuid_file_path, 'r') as file:
-        correct_section = False         # Checks the header (section) Image Header (pl_cfi)
+        correct_section = False
         for line in file:
             if "IMAGE HEADER (pl_cfi)" in line:
-                correct_section = True;             ## Right section of the file
+                correct_section = True
             if correct_section:
                 if "id (0x18) :" in line:
                     id_mo = idRegex.findall(line)
@@ -118,48 +129,57 @@ def extract_uuid(uuid_file_path):
                     parentID_mo = parentIdRegexp.findall(line)
                     functionID_mo = functionIdRegexp.findall(line)
                 if "IMAGE HEADER (aie2_subsys)" in line:
-                    correct_section = False;
+                    correct_section = False
     uuid_list = [id_mo[0],uniqueId_mo[0],parentID_mo[0],functionID_mo[0]]
     return uuid_list
 
 # Returns a list of tuples including pf number and bar number
-def extract_qdma_bar_info(config_bd_file_path):
-    with open (config_bd_file_path, 'r') as file:
-        pfbar_list =[]
+def extract_bar_info(config_bd_file_path):
+    with open(config_bd_file_path, 'r') as file:
+        pfbar_list = []
         correct_part = False
+
         for line in file:
-            if "set qdma_0" in line:
+            if "set xdma_0" in line:
                 correct_part = True
             if correct_part:
-                if "CONFIG.pf" in line and "64bit_qdma" in line and "true" in line:
+                if "CONFIG.pf" in line and "64bit" in line and "true" in line:
                     pf_mo = pf_Regex.search(line)
-                    pfbar_tuple = (pf_mo.group(1),pf_mo.group(2))
-                    pfbar_list.append(pfbar_tuple)
-                if "$qdma_0" in line:
+                    if pf_mo:
+                        pfbar_list.append((pf_mo.group(1), pf_mo.group(2)))
+                if "$xdma_0" in line:
                     correct_part = False
     return pfbar_list
 
-# Returns the range and offset for each PF and bar
-def extract_bars_ranges_offsets(pfbar_list,config_bd_file_path,ulp_bd_file_path):
-    bar_address_list=[]
-    bar_scale_list=[]
-    bar_size_list=[]
-    for bar in pfbar_list:
-        searchable_address_str = "CONFIG.pf{}_pciebar2axibar_{}".format(bar[0],bar[1])
-        searchable_scale_str = "CONFIG.pf{}_bar{}_scale_qdma".format(bar[0],bar[1])
-        searchable_size_str = "CONFIG.pf{}_bar{}_size_qdma".format(bar[0],bar[1])
-        correct_part = False
-        with open (config_bd_file_path, 'r') as file:
+# Returns the BAR address (AXI), scale, and size for each PF/BAR
+def extract_bars_ranges_offsets(pfbar_list, config_bd_file_path, ulp_bd_file_path):
+    bar_address_list = []
+    bar_scale_list = []
+    bar_size_list = []
+
+    # Use hardcoded AXI BAR addresses for XDMA
+    for pf, bar in pfbar_list:
+        key = (pf, bar)
+        if key in HARD_CODED_PF_BAR_TO_AXIBAR:
+            bar_address_list.append(HARD_CODED_PF_BAR_TO_AXIBAR[key])
+        else:
+            raise ValueError(f"No hardcoded AXI BAR address for PF {pf}, BAR {bar}")
+
+    # Parse scale and size from the config_bd file
+    for pf, bar in pfbar_list:
+        searchable_scale_str = f"CONFIG.pf{pf}_bar{bar}_scale"
+        searchable_size_str  = f"CONFIG.pf{pf}_bar{bar}_size"
+        with open(config_bd_file_path, 'r') as file:
             for line in file:
-                if searchable_address_str in line:
-                    bar_address_mo = bar_address_Regex.search(line)
-                    bar_address_list.append(bar_address_mo.group(1))
-                elif searchable_scale_str in line:
+                if searchable_scale_str in line:
                     bar_scale_mo = bar_scale_Regex.search(line)
-                    bar_scale_list.append(bar_scale_mo.group(1))
-                elif searchable_size_str in line:
+                    if bar_scale_mo:
+                        bar_scale_list.append(bar_scale_mo.group(1))
+                if searchable_size_str in line:
                     bar_size_mo = bar_size_Regex.search(line)
-                    bar_size_list.append(bar_size_mo.group(1))
+                    if bar_size_mo:
+                        bar_size_list.append(bar_size_mo.group(1))
+
     return bar_address_list, bar_scale_list, bar_size_list
 
 # Define actual range for each bar
@@ -177,10 +197,10 @@ def get_range(bar_size_list,bar_scale_list):
     return bar_range_list
 
 
-# Creates a list of strings that are representing the bars that need to be included in the partition_metada file. This list should be used later when strings are appended to the generate metadata file 
+# Creates a list of strings for bars (not used further but retained)
 def write_bars(pfbar_list,bar_address_list, bar_range_list):
     bar_string_list =[]
-    j =0;
+    j =0
     for i in (pfbar_list):
         bar_ba_str = i[1]
         bar_pf_str = i[0]
@@ -188,7 +208,7 @@ def write_bars(pfbar_list,bar_address_list, bar_range_list):
         bar_range_str = bar_range_list[j]
         formatted_str = bar_string.format(bar_base_address=bar_ba_str,bar_pf=bar_pf_str,bar_offset=bar_offset_str,bar_range=bar_range_str)
         bar_string_list.append(formatted_str)
-        j=j+1;
+        j=j+1
     return bar_string_list
 
 
@@ -280,7 +300,7 @@ def ep_offset_pf_add_base_adj(ep_offset_list,bar_address_list,pfbar_list):
 
 def metadata_file_generation(metadata_file_path,config_bd_file_path,ulp_bd_file_path):
     metadata_file_header(metadata_file_path)
-    pfbar_list = extract_qdma_bar_info(config_bd_file_path)
+    pfbar_list = extract_bar_info(config_bd_file_path)
     bar_address_list, bar_scale_list, bar_size_list = extract_bars_ranges_offsets(pfbar_list,config_bd_file_path,ulp_bd_file_path)
     bar_range_list = get_range(bar_size_list,bar_scale_list)
     file = open(metadata_file_path,'a')
@@ -315,8 +335,6 @@ interface_uuid_str = uuid_list[2]
 interface_uuid_int = int(interface_uuid_str,16)
 interface_uuid = "{:032x}".format(interface_uuid_int)
 
-
 metadata_file_generation(metadata_file_path,config_bd_file_path,ulp_bd_file_path)
 print("overlay_partition_metadata.json has been successfully generated!")
 print("Please check the file located at " + metadata_file_path)
-

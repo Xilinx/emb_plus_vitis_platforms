@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Advanced Micro Devices, Inc.
+# Copyright (C) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
 #create_clock -name sys_clk_0_0_clk_p -period 5.000 [get_ports sys_clk_0_0_clk_p]

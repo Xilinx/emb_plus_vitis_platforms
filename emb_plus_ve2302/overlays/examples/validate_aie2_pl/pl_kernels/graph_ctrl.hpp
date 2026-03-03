@@ -6,7 +6,7 @@
 #define _XF_PLCTRL_GRAPH_CTRL_HPP_
 
 #include "ctrl_pkt_utils.hpp"
-#include "drivers/aiengine/xaiengine/xaiegbl_params.h"
+#include "drivers/aiengine/aie_codegen_inc/xaiegbl_params.h"
 
 namespace xf {
 namespace plctrl {

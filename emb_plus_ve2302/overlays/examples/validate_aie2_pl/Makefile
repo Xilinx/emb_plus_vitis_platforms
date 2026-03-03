@@ -13,7 +13,7 @@ RM = rm -rf
 MV = mv
 PYTHON = python3
 META_GEN = $(COMMON_PATH)/gen_metadata.py
-VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_qdma
+VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_xdma
 XUTIL = xclbinutil
 PLATFORM ?=
 PLATFORM_NAME = $(strip $(patsubst %.xpfm, % , $(shell basename $(PLATFORM))))
@@ -45,7 +45,7 @@ MAINTAINER = AMD
 BOARD = ve2302
 EXAMPLE = validate-aie2pl
 BUILD_DIR = xrt-aie-test-$(BOARD)
-DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_qdma/base/test/
+DEB_DIR = $(BUILD_DIR)/opt/xilinx/firmware/emb_plus/ve2302_pcie_xdma/base/test/
 
 VIV_CONFIG = $(VIV_DIR)/scripts/config_bd.tcl
 ULP_CONFIG = $(VIV_DIR)/scripts/ulp.tcl
@@ -167,4 +167,6 @@ clean:
 	-$(RMDIR) $(CUR_DIR)/Work  $(CUR_DIR)/reports $(BUILD_DIR)
 	-$(RMDIR) $(BUILD_DIR) $(DEB_FILE)
 	-$(RMDIR) $(META_JSON) *data.txt
+	-$(RMDIR) analyzer_input/ baremetal_metadata_package.cpp
+	-$(RMDIR) BOOT.BIN aie.merged.cdo.bin boot_image.bif
 

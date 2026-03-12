@@ -52,10 +52,10 @@ help:
 
 
 .PHONY: all
-all: platform sdt
+all: platform
 
 .PHONY: platform
-platform: $(PFM_XPFM)
+platform: $(PFM_XPFM) sdt
 $(PFM_XPFM): $(VIV_XSA)
 	$(VITIS) -s $(PFM_PY) -xsa $(VIV_XSA) -out $(PFM_DIR)
 	@echo 'Vitis platform available at $(PFM_DIR)'

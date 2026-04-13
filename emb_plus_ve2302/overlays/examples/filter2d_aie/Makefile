@@ -95,6 +95,7 @@ $(XCLBIN_FILE): $(BINARY_CONTAINERS)
 	$(PYTHON) $(META_GEN) -config $(VIV_CONFIG) -pdi $(VIV_PDI) -ulp $(ULP_CONFIG) -o $(META_JSON)
 	$(XUTIL) --input $^ --remove-section AIE_RESOURCES --output f2d_aie_aie_resource.xclbin
 	$(XUTIL) --input f2d_aie_aie_resource.xclbin --add-section PARTITION_METADATA:JSON:$(META_JSON) --output $@
+	rm -f f2d_aie_aie_resource.xclbin
 
 $(BINARY_CONTAINERS): $(XSA_FILE) $(AIE_CONTAINER)
 	${VPP} -p -t ${TARGET} -f ${PLATFORM} ${AIE_CONTAINER} --package.boot_mode=ospi -o $@ $^

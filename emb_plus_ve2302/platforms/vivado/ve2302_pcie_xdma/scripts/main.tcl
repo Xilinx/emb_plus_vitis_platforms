@@ -111,7 +111,7 @@ close $fd
 create_pr_configuration -name config_1 -partitions [list ${proj_name}_i/${userBD}:${userBD}_inst_0]
 set_property PR_CONFIGURATION config_1 [get_runs impl_1]
 
-set_property strategy Performance_Auto_3 [get_runs impl_1]
+set_property strategy Performance_AggressiveExplore [get_runs impl_1]
 
 launch_runs impl_1 -to_step write_device_image -jobs $jobs
 wait_on_run impl_1

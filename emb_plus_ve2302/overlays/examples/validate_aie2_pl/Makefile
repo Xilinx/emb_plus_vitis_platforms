@@ -85,6 +85,7 @@ VPP_FLAGS_pl_controller_top += --hls.clock 250000000:pl_controller_top
 VPP_FLAGS_sender_receiver += --verbose
 VPP_FLAGS_sender_receiver += --hls.clock 250000000:sender_receiver
 VPP_FLAGS +=  -I $(SRC_DIR)/pl_kernels -I $(XILINX_VITIS)/aietools/include
+VPP_FLAGS +=  --vivado.prop run.impl_1.strategy=Performance_AggressiveExplore
 VPP_LDFLAGS +=  --config $(CUR_DIR)/system.cfg
 VPP_LDFLAGS += --kernel_frequency 250
 
@@ -113,7 +114,7 @@ $(XCLBIN_FILE): $(BINARY_CONTAINER)
 
 xclbin_cont: $(BINARY_CONTAINER)
 $(BINARY_CONTAINER): $(XSA_FILE)
-	${VPP} -p -t ${TARGET} -f ${PLATFORM} ${AIE_CONTAINER} --package.boot_mode=ospi --package.defer_aie_run -o $@ $^ 
+	${VPP} -p -t ${TARGET} -f ${PLATFORM} ${AIE_CONTAINER} --package.boot_mode=ospi --package.defer_aie_run -o $@ $^
 $(XSA_FILE): $(BINARY_CONTAINER_OBJS) $(AIE_CONTAINER)
 	$(VPP) -l $(VPP_FLAGS) -t $(TARGET) --platform $(PLATFORM) --temp_dir $(TEMP_DIR) --report_dir $(BUILD_REPORT_DIR) $(VPP_LDFLAGS) -o $@ $^
 

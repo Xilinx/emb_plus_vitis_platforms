@@ -53,13 +53,6 @@ update_ip_catalog
 source $bd_tcl_dir/ulp.tcl
 source $bd_tcl_dir/training.tcl
 source $bd_tcl_dir/config_bd.tcl
-if {${use_secure}} {
-  # To use the Isolation Editor in the GUI, this MUST be set in Vivado_init.tcl
-  # before opening the project:
-  # set_param bd.isolation true
-
-  source $bd_tcl_dir/create_isolation.tcl
-}
 
 save_bd_design
 
@@ -119,16 +112,16 @@ open_run impl_1
 
 # Update BIF file with marker information for Isolation
 if { ${use_secure} } {
-  puts "Updating BIF files"
-  cd ${cwd}/${proj_dir}/${proj_name}.runs/impl_1
   set partial ${proj_name}_i_${userBD}_${userBD}_inst_0_partial
-  exec sed -i "s/${proj_name}_wrapper.rcdo/${proj_name}_wrapper_markers.rcdo/g" ${proj_name}_wrapper.bif
-  exec sed -i "s/${proj_name}_wrapper.rnpi/${proj_name}_wrapper_markers.rnpi/g" ${proj_name}_wrapper.bif
-  exec sed -i "s/${partial}.rcdo/${partial}_markers.rcdo/g" ${partial}.bif
-  exec sed -i "s/${partial}.rnpi/${partial}_markers.rnpi/g" ${partial}.bif
-  puts "Re-run bootgen"
-  exec bootgen -arch versal -image ${proj_name}_wrapper.bif -w -o ${proj_name}_wrapper.pdi
-  exec bootgen -arch versal -image ${partial}.bif -w -o ${partial}.pdi
+
+  puts "Generate CDO"
+  cd ${cwd}/${proj_dir}/${proj_name}.runs/impl_1
+  exec isoutil ${cwd}/scripts/isolation_definition.iss -f -o ./isolation.cdo
+
+  puts "Updating PDIs"
+  exec bootgen -arch versal -overlay_cdo isolation.cdo -image ${proj_name}_wrapper.bif -o ${proj_name}_wrapper.pdi -w
+  exec bootgen -arch versal -overlay_cdo isolation.cdo -image ${partial}.bif -w -o ${partial}.pdi
+
   cd ${cwd}
 }
 

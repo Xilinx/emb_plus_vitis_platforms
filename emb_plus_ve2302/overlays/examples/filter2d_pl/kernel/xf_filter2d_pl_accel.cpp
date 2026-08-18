@@ -110,7 +110,8 @@ void filter2d_pl_accel(XF_TNAME(XF_16UC1, PPC) * frm_in,
                        uint32_t cols,
                        uint32_t fourcc_in,
                        uint32_t fourcc_out,
-                       uint32_t chroma_mode) {
+                       uint32_t chroma_mode,
+                       uint32_t shift) {
 // clang-format off
 #pragma HLS INTERFACE m_axi port = frm_in offset = slave bundle = gmem1 depth = 115200 max_read_burst_length = 256
 #pragma HLS INTERFACE m_axi port = frm_out offset = slave bundle = gmem2 depth = 115200 max_read_burst_length = 256
@@ -125,6 +126,7 @@ void filter2d_pl_accel(XF_TNAME(XF_16UC1, PPC) * frm_in,
 #pragma HLS INTERFACE s_axilite port = fourcc_in bundle = control
 #pragma HLS INTERFACE s_axilite port = fourcc_out bundle = control
 #pragma HLS INTERFACE s_axilite port = chroma_mode bundle = control
+#pragma HLS INTERFACE s_axilite port = shift bundle = control
 #pragma HLS INTERFACE s_axilite port = return bundle = control
 // clang-format on
 
@@ -142,7 +144,7 @@ void filter2d_pl_accel(XF_TNAME(XF_16UC1, PPC) * frm_in,
     chroma_stream(uv_in, uv_out, chroma_mode);
 
     xf::cv::filter2D<XF_BORDER_CONSTANT, XF_FILTER_3X3, XF_FILTER_3X3, XF_8UC1, XF_8UC1, HEIGHT, WIDTH, PPC>(
-        luma_in, luma_out, kernel, 0);
+        luma_in, luma_out, kernel, (unsigned char)shift);
 
     write_f2d_output(luma_out, uv_out, (XF_TNAME(XF_16UC1, PPC)*)frm_out, fourcc_out);
 }

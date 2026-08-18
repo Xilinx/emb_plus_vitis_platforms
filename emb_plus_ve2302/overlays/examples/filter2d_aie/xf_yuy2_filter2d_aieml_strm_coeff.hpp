@@ -39,8 +39,10 @@ __attribute__((noinline)) void yuy2_filter2D(adf::input_buffer<int16_t>& img_in,
     int16_t* restrict img_out_ptr = (int16_t*)::aie::begin(img_out);
 
     ::aie::vector<int16_t, 16> coeff_temp = ::aie::load_v<16>(coeff_in_ptr);
-    const int16_t coeff_in[16] = {0};
-    ::aie::store_v((int16_t *)coeff_in, coeff_temp);
+    /* Not const: it is written below, and storing through a const-stripped
+       pointer lets the compiler keep folding reads to the zero initialiser. */
+    int16_t coeff_in[16] = {0};
+    ::aie::store_v(coeff_in, coeff_temp);
     const int16_t image_width = xfGetTileWidth(img_in_ptr) * 2; // inclusive of channels
     const int16_t image_height = xfGetTileHeight(img_in_ptr);
 

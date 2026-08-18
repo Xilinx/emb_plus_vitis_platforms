@@ -34,6 +34,7 @@ extern "C" void filter2d_pl_accel(XF_TNAME(XF_16UC1, PPC) * frm_in,
                        uint32_t cols,
                        uint32_t fourcc_in,
                        uint32_t fourcc_out,
-                       uint32_t chroma_mode);
+                       uint32_t chroma_mode,
+                       uint32_t shift);
 
 #endif // end of  _XF_FILTER2D_PL_CONFIG_H_

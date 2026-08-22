@@ -14,7 +14,7 @@ PFM_VER = 202610_1
 
 # valid platforms / overlays
 PFM_LIST += ve2302_pcie_xdma
-OVERLAY_LIST += filter2d_pl bandwidth_test validate_aie2_pl verify_test filter2d_aie
+OVERLAY_LIST += filter2d_pl bandwidth_test validate_aie2_pl verify_test filter2d_aie filter2d_combined
 
 VITIS_DIR = overlays/examples
 VITIS_OVERLAY_DIR = $(VITIS_DIR)/$(OVERLAY)

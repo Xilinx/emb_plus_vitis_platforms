@@ -30,6 +30,8 @@ __attribute__((noinline)) void filter2D_aieml(int16_t* restrict _input,
     ::aie::vector<int16_t, 32> temp;
     int16_t* coeff_ptr = (int16_t*)(coeff);
     ::aie::vector<int16_t, 16> vcoeff = *(v16int16*)(&coeff[0]);
+    /* Output is clamped to [0,255]: the SRS only saturates to int16, so a
+     * zero-sum kernel leaves negatives that wrap when narrowed to 8-bit. */
     ::aie::accum<acc64, 16> acc;
 
     int16_t* _input_r[3];
@@ -53,7 +55,8 @@ __attribute__((noinline)) void filter2D_aieml(int16_t* restrict _input,
             row_buf2 = ::aie::load_v<32>(_input_r[2]);
             temp = ::aie::shuffle_up_replicate(row_buf2, 1);
             acc = ::aie::sliding_mac<16, 4, 1, 1, 1>(acc, vcoeff, 8, temp, 0);
-            ::aie::store_v(out, acc.to_vector<int16_t>(10));
+            ::aie::store_v(out, ::aie::max(::aie::min(acc.to_vector<int16_t>(10),
+                                          (int16_t)255), (int16_t)0));
 
             _input_r[0] += VECTORIZATION_FACTOR;
             _input_r[1] += VECTORIZATION_FACTOR;
@@ -86,7 +89,8 @@ __attribute__((noinline)) void filter2D_aieml(int16_t* restrict _input,
                     temp[0] = *(_input_r[2] - 1);
                     acc = ::aie::sliding_mac<16, 4, 1, 1, 1>(acc, vcoeff, 8, temp, 0);
 
-                    ::aie::store_v(out, acc.to_vector<int16_t>(10));
+                    ::aie::store_v(out, ::aie::max(::aie::min(acc.to_vector<int16_t>(10),
+                                          (int16_t)255), (int16_t)0));
 
                     _input_r[0] += VECTORIZATION_FACTOR;
                     _input_r[1] += VECTORIZATION_FACTOR;
@@ -109,7 +113,8 @@ __attribute__((noinline)) void filter2D_aieml(int16_t* restrict _input,
             row_buf2 = ::aie::load_v<32>(_input_r[2] - VECTORIZATION_FACTOR);
             temp = ::aie::shuffle_down_replicate(row_buf2, 15);
             acc = ::aie::sliding_mac<16, 4, 1, 1, 1>(acc, vcoeff, 8, temp, 0);
-            ::aie::store_v(out, acc.to_vector<int16_t>(10));
+            ::aie::store_v(out, ::aie::max(::aie::min(acc.to_vector<int16_t>(10),
+                                          (int16_t)255), (int16_t)0));
         }
         //@}
     } // for _res_s0_y

@@ -22,9 +22,16 @@ Platforms list:
 Overlays list:
 - bandwidth_test
 - filter2d_aie
+- filter2d_combined
 - filter2d_pl
 - validate_aie2_pl
 - verify_test
+
+`filter2d_combined` builds one xclbin carrying both the AI Engine graph and the
+PL accelerator, so the sample application can switch between them at runtime
+without reprogramming the device. It holds no kernel sources of its own: it
+builds from `filter2d_aie/` and `filter2d_pl/`, so those remain the place to
+change the kernels.
 
 ## Tools Version
 
@@ -61,6 +68,7 @@ emb_plus_vitis_platforms
 ¦ ¦  +-- examples
 ¦ ¦  ¦   +-- bandwidth_test
 ¦ ¦  ¦   +-- filter2d_aie
+¦ ¦  ¦   +-- filter2d_combined
 ¦ ¦  ¦   +-- filter2d_pl
 ¦ ¦  ¦   +-- validate_aie2_pl
 ¦ ¦  ¦   +-- verify_test

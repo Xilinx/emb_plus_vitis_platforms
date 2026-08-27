@@ -684,6 +684,37 @@ pipeline {
                         }
                     }
                 }
+                stage('filter2d_combined overlay build') {
+                    environment {
+                        pfm_name="ve2302_pcie_xdma"
+                        pfm="xilinx_${pfm_name}_${pfm_ver}"
+                        work_dir="${ws}/build/${pfm_name}"
+                        board="emb_plus_ve2302"
+                        silicon="prod"
+                        secure="0"
+                        overlay="filter2d_combined"
+                        example_dir="${work_dir}/${board}/overlays/examples/${overlay}"
+                    }
+                    when {
+                        anyOf {
+                            // Builds from the filter2d_aie and filter2d_pl
+                            // sources, so a change to either must rebuild it.
+                            changeset "**/emb_plus_ve2302/overlays/examples/filter2d_combined/**"
+                            changeset "**/emb_plus_ve2302/overlays/examples/filter2d_aie/**"
+                            changeset "**/emb_plus_ve2302/overlays/examples/filter2d_pl/**"
+                            triggeredBy 'TimerTrigger'
+                            environment name: 'VE2302_PFM_SUCCESS', value: '1'
+                        }
+                    }
+                    steps {
+                        buildOverlay()
+                    }
+                    post {
+                        success {
+                            deployOverlay()
+                        }
+                    }
+                }
             }
         }
     }

@@ -19,6 +19,15 @@
 
 #define PARALLEL_FACTOR_16b 16 // Parallelization factor for 16b operations (16x mults)
 #define SRS_SHIFT 10           // SRS shift used can be increased if input data likewise adjusted)
+
+/* chroma_mode rides in the coefficient buffer. The 3x3 kernel occupies lanes
+   0..11 as k0 k1 k2 0 | k3 k4 k5 0 | k6 k7 k8 0; the sliding_mul calls below
+   read only those, so 12..15 are free and this needs no graph change. Values
+   match the PL kernel's chroma_mode. */
+#define POS_CHROMA_MODE 12
+#define CHROMA_PASSTHROUGH 0
+#define CHROMA_NEUTRAL 1
+#define CHROMA_NEUTRAL_VALUE 128
 alignas(::aie::vector_decl_align) int16_t y_buff[7680]; // Set these as (TileHeight*TileWidth*Channels)/2
 alignas(::aie::vector_decl_align) int16_t uv_buff[7680];
 alignas(::aie::vector_decl_align) int16_t y_filtered_buff[7680];
@@ -39,8 +48,11 @@ __attribute__((noinline)) void yuy2_filter2D(adf::input_buffer<int16_t>& img_in,
     int16_t* restrict img_out_ptr = (int16_t*)::aie::begin(img_out);
 
     ::aie::vector<int16_t, 16> coeff_temp = ::aie::load_v<16>(coeff_in_ptr);
-    const int16_t coeff_in[16] = {0};
-    ::aie::store_v((int16_t *)coeff_in, coeff_temp);
+    /* Not const: it is written below, and storing through a const-stripped
+       pointer lets the compiler keep folding reads to the zero initialiser. */
+    int16_t coeff_in[16] = {0};
+    ::aie::store_v(coeff_in, coeff_temp);
+    const bool chroma_neutral = (coeff_in[POS_CHROMA_MODE] == CHROMA_NEUTRAL);
     const int16_t image_width = xfGetTileWidth(img_in_ptr) * 2; // inclusive of channels
     const int16_t image_height = xfGetTileHeight(img_in_ptr);
 
@@ -79,7 +91,9 @@ __attribute__((noinline)) void yuy2_filter2D(adf::input_buffer<int16_t>& img_in,
                         int posn = image_width * i + j;
                         ::aie::vector<int16_t, 32> y_temp, uv_temp;
                         y_temp = ::aie::load_v<32>(y_filtered_ptr + posn / 2);
-                        uv_temp = ::aie::load_v<32>(uv_ptr + posn / 2);
+                        uv_temp = chroma_neutral
+                                      ? ::aie::broadcast<int16_t, 32>(CHROMA_NEUTRAL_VALUE)
+                                      : ::aie::load_v<32>(uv_ptr + posn / 2);
                         std::tie(y_temp, uv_temp) = ::aie::interleave_zip(y_temp, uv_temp, 1);
 
                         ::aie::store_v(out_img_ptr + posn, y_temp);

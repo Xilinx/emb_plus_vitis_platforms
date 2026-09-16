@@ -14,7 +14,7 @@
 # or directly: make all PLATFORM=<abs path to .xpfm>
 
 SHELL = bash
-VERSION = 1.3
+VERSION = 1.4
 CURDIR = $(shell pwd)
 REPO_PATH = $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(CURDIR)))))
 COMMON_PATH = $(REPO_PATH)/common

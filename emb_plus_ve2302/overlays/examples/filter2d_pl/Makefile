@@ -10,7 +10,7 @@ COMMON_PATH = $(REPO_PATH)/common
 PYTHON = python3
 META_GEN = $(COMMON_PATH)/gen_metadata.py
 VIV_DIR = $(REPO_PATH)/emb_plus_ve2302/platforms/vivado/ve2302_pcie_xdma
-XUTIL = xclbinutil 
+XUTIL = xclbinutil
 META_JSON =  $(CURDIR)/filter2d_pl_partition_metadata.json
 
 # v++ flags
@@ -29,7 +29,7 @@ XSA_FILE = filter2d_pl.xsa
 CLK_FREQ = 299996999
 
 ## deb package script location
-VERSION = 1.3
+VERSION = 1.4
 MAINTAINER = AMD
 BOARD = ve2302
 EXAMPLE = filter2d-pl
